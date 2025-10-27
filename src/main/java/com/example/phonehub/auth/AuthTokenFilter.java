@@ -10,6 +10,10 @@ import org.springframework.security.authentication.*;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+
+import com.example.phonehub.auth.service.CustomUserDetailsService;
+import com.example.phonehub.auth.util.JwtUtil;
+
 import java.io.IOException;
 @Component
 public class AuthTokenFilter extends OncePerRequestFilter {

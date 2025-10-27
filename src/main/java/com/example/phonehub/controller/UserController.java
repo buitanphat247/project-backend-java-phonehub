@@ -1,5 +1,6 @@
 package com.example.phonehub.controller;
 
+import com.example.phonehub.auth.annotation.RequiresAuth;
 import com.example.phonehub.dto.ApiResponse;
 import com.example.phonehub.dto.CreateUserRequest;
 import com.example.phonehub.dto.UserDto;
@@ -29,6 +30,7 @@ public class UserController {
     @Autowired
     private UserService userService;
 
+    @RequiresAuth(roles = {"ADMIN"})
     @Operation(summary = "📄 Lấy danh sách người dùng có phân trang", description = "Trả về danh sách người dùng với phân trang")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "✅ Lấy danh sách thành công")

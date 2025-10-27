@@ -1,6 +1,7 @@
-package com.example.phonehub.auth;
+package com.example.phonehub.auth.config;
 
-import com.example.phonehub.auth.config.SecurityAnnotationConfig;
+import com.example.phonehub.auth.AuthEntryPointJwt;
+import com.example.phonehub.auth.AuthTokenFilter;
 import com.example.phonehub.auth.interceptor.RoleBasedAccessInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;

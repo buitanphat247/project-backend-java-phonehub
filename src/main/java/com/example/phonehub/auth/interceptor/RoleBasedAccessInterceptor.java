@@ -2,7 +2,8 @@ package com.example.phonehub.auth.interceptor;
 
 import com.example.phonehub.auth.annotation.Public;
 import com.example.phonehub.auth.annotation.RequiresAuth;
-import com.example.phonehub.auth.JwtUtil;
+import com.example.phonehub.auth.util.JwtUtil;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +35,6 @@ public class RoleBasedAccessInterceptor implements HandlerInterceptor {
         
         // If method or class is @Public, skip authentication
         if (isPublicMethod || isPublicClass) {
-            System.out.println("🌐 Public endpoint accessed: " + request.getRequestURI());
             return true;
         }
         

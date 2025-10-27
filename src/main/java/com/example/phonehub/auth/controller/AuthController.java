@@ -1,5 +1,6 @@
-package com.example.phonehub.auth;
+package com.example.phonehub.auth.controller;
 
+import com.example.phonehub.auth.service.AuthService;
 import com.example.phonehub.dto.ApiResponse;
 import com.example.phonehub.dto.AuthResponse;
 import io.swagger.v3.oas.annotations.Operation;

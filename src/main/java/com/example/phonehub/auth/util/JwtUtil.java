@@ -1,4 +1,4 @@
-package com.example.phonehub.auth;
+package com.example.phonehub.auth.util;
 
 import com.example.phonehub.entity.User;
 import io.jsonwebtoken.Claims;

@@ -57,12 +57,8 @@ public class SecurityAnnotationConfig {
             if (isPublic && mappingInfo.getPatternValues() != null) {
                 Set<String> patterns = mappingInfo.getPatternValues();
                 urls.addAll(patterns);
-                System.out.println("✅ Public URL detected: " + patterns);
             }
         }
-        
-        System.out.println("📋 Total public URLs: " + urls.size());
-        System.out.println("🌐 Public URLs: " + urls);
         
         return urls;
     }

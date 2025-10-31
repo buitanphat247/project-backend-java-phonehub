@@ -1,5 +1,6 @@
 package com.example.phonehub.auth.controller;
 
+import com.example.phonehub.auth.annotation.Public;
 import com.example.phonehub.auth.service.AuthService;
 import com.example.phonehub.dto.ApiResponse;
 import com.example.phonehub.dto.AuthResponse;
@@ -17,6 +18,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/auth")
+@Public
 @Tag(name = "Authentication", description = "API đăng nhập và đăng ký")
 public class AuthController {
     

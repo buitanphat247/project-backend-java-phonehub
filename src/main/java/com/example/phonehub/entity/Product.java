@@ -57,10 +57,6 @@ public class Product {
     @Size(max = 500, message = "Thumbnail image URL must not exceed 500 characters")
     private String thumbnailImage;
     
-    @Column(name = "color", length = 50)
-    @Size(max = 50, message = "Color must not exceed 50 characters")
-    private String color;
-    
     @Column(name = "is_published", nullable = false)
     private Boolean isPublished = false;
     

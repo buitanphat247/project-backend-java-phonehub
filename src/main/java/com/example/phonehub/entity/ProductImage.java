@@ -26,9 +26,7 @@ public class ProductImage {
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
     
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "image_category_id", nullable = false)
-    private ImageCategory imageCategory;
+    // image category relationship removed
     
     @Column(name = "url", nullable = false, length = 500)
     @NotBlank(message = "Image URL is required")

@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -15,7 +16,7 @@ public class ProductDto {
     private String name;
     private String slug;
     private String brand;
-    private Integer categoryId;
+    private CategoryDto category;
     private BigDecimal price;
     private BigDecimal priceOld;
     private String discount;
@@ -25,6 +26,9 @@ public class ProductDto {
     private UserDto createdBy;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private List<ProductSpecificationDto> specifications;
+    private List<ProductColorDto> colors;
+    private List<ProductImageDto> images;
 }
 
  

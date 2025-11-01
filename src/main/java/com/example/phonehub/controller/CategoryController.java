@@ -1,5 +1,7 @@
 package com.example.phonehub.controller;
 
+import com.example.phonehub.auth.annotation.Public;
+import com.example.phonehub.auth.annotation.RequiresAuth;
 import com.example.phonehub.dto.ApiResponse;
 import com.example.phonehub.dto.CreateCategoryRequest;
 import com.example.phonehub.dto.CategoryDto;
@@ -25,6 +27,7 @@ public class CategoryController {
     private CategoryService categoryService;
 
     @Operation(summary = "📄 Lấy danh sách danh mục có phân trang", description = "Trả về danh sách danh mục với phân trang")
+    @Public
     @GetMapping
     public ResponseEntity<ApiResponse<Page<CategoryDto>>> getAllCategories(
             @Parameter(description = "Số trang (bắt đầu từ 0)", example = "0") @RequestParam(defaultValue = "0") int page,
@@ -42,6 +45,7 @@ public class CategoryController {
     }
 
     @Operation(summary = "🔍 Lấy danh mục theo ID")
+    @Public
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<CategoryDto>> getCategoryById(
             @Parameter(description = "ID của danh mục", required = true, example = "1") @PathVariable Integer id) {
@@ -60,26 +64,8 @@ public class CategoryController {
         }
     }
 
-    @Operation(summary = "🔎 Tìm danh mục theo slug")
-    @GetMapping("/search")
-    public ResponseEntity<ApiResponse<CategoryDto>> getCategoryBySlug(
-            @Parameter(description = "Slug của danh mục", required = true, example = "dien-thoai-thong-minh") @RequestParam String slug) {
-        try {
-            Optional<CategoryDto> category = categoryService.getCategoryBySlug(slug);
-            if (category.isPresent()) {
-                ApiResponse<CategoryDto> response = ApiResponse.success("Tìm thấy danh mục", category.get());
-                return ResponseEntity.ok(response);
-            } else {
-                ApiResponse<CategoryDto> response = ApiResponse.notFound("Không tìm thấy danh mục với slug: " + slug);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-            }
-        } catch (Exception e) {
-            ApiResponse<CategoryDto> response = ApiResponse.error("Lỗi khi tìm danh mục: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-        }
-    }
-
     @Operation(summary = "➕ Tạo danh mục mới")
+    @RequiresAuth(roles = {"admin"})
     @PostMapping
     public ResponseEntity<ApiResponse<CategoryDto>> createCategory(
             @Valid @RequestBody CreateCategoryRequest request) {
@@ -101,6 +87,7 @@ public class CategoryController {
     }
 
     @Operation(summary = "✏️ Cập nhật danh mục")
+    @RequiresAuth(roles = {"admin"})
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<CategoryDto>> updateCategory(
             @Parameter(description = "ID của danh mục", required = true, example = "1") @PathVariable Integer id,
@@ -127,6 +114,7 @@ public class CategoryController {
     }
 
     @Operation(summary = "🗑️ Xóa danh mục")
+    @RequiresAuth(roles = {"admin"})
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteCategory(
             @Parameter(description = "ID của danh mục", required = true, example = "1") @PathVariable Integer id) {

@@ -2,6 +2,8 @@ package com.example.phonehub.controller;
 
 import com.example.phonehub.dto.*;
 import com.example.phonehub.service.ProductSpecificationService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,11 +19,14 @@ import java.util.List;
 public class ProductSpecificationController {
     @Autowired private ProductSpecificationService specService;
 
+    @Operation(summary = "📋 Lấy danh sách thông số kỹ thuật theo Product ID", description = "Lấy tất cả thông số kỹ thuật của sản phẩm. Có thể lọc theo group (tùy chọn)")
     @GetMapping
-    public ResponseEntity<ApiResponse<List<ProductSpecificationDto>>> byProduct(@RequestParam Integer productId, @RequestParam(required = false) String group){
+    public ResponseEntity<ApiResponse<List<ProductSpecificationDto>>> byProduct(
+            @Parameter(description = "ID của sản phẩm", required = true, example = "1") @RequestParam Integer productId,
+            @Parameter(description = "Tên nhóm thông số (tùy chọn)", example = "Màn hình") @RequestParam(required = false) String group){
         try {
             List<ProductSpecificationDto> data = group==null ? specService.getByProduct(productId) : specService.getByProductAndGroup(productId, group);
-            return ResponseEntity.ok(ApiResponse.success(data));
+            return ResponseEntity.ok(ApiResponse.success("Lấy danh sách thông số thành công", data));
         } catch (Exception e){ return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("Lỗi: "+e.getMessage())); }
     }
 

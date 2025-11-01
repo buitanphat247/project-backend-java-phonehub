@@ -22,7 +22,6 @@ public class CategoryDto {
     @Size(max = 150, message = "Category slug must not exceed 150 characters")
     private String slug;
     
-    private UserDto createdBy;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

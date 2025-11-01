@@ -13,7 +13,6 @@ public class ProductImageDto {
     private Integer id;
     private Integer productId;
     private String url;
-    private UserDto createdBy;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

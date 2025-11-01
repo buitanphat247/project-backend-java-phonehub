@@ -10,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/product-colors")
@@ -22,15 +21,6 @@ public class ProductColorController {
     public ResponseEntity<ApiResponse<List<ProductColorDto>>> byProduct(@RequestParam Integer productId){
         try { return ResponseEntity.ok(ApiResponse.success(colorService.getByProduct(productId))); }
         catch (Exception e){ return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("Lỗi: "+e.getMessage())); }
-    }
-
-    @GetMapping("/search")
-    public ResponseEntity<ApiResponse<ProductColorDto>> bySlug(@RequestParam String slug){
-        try {
-            Optional<ProductColorDto> c = colorService.getBySlug(slug);
-            return c.map(v -> ResponseEntity.ok(ApiResponse.success(v)))
-                    .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.notFound("Không tìm thấy màu")));
-        } catch (Exception e){ return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("Lỗi: "+e.getMessage())); }
     }
 
     @PostMapping

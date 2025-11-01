@@ -16,7 +16,6 @@ public class ProductSpecificationDto {
     private String label;
     private String value;
     private String type;
-    private UserDto createdBy;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

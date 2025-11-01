@@ -21,11 +21,6 @@ public class CategoryUtils {
         dto.setCreatedAt(category.getCreatedAt());
         dto.setUpdatedAt(category.getUpdatedAt());
         
-        // Convert createdBy user
-        if (category.getCreatedBy() != null) {
-            dto.setCreatedBy(UserUtils.toDto(category.getCreatedBy()));
-        }
-        
         return dto;
     }
     

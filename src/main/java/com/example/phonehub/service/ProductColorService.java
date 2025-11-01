@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @Transactional
@@ -25,7 +24,6 @@ public class ProductColorService {
     @Autowired private UserRepository userRepository;
 
     public List<ProductColorDto> getByProduct(Integer productId){ return ProductUtils.toColorList(colorRepository.findByProductId(productId)); }
-    public Optional<ProductColorDto> getBySlug(String slug){ return colorRepository.findBySlug(slug).map(ProductUtils::toDto);}    
 
     public ProductColorDto create(CreateProductColorRequest req){
         String slug = (req.getSlug()==null||req.getSlug().isEmpty()) ? SlugUtils.generateSlug(req.getName()) : req.getSlug();

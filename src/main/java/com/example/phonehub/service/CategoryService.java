@@ -40,12 +40,6 @@ public class CategoryService {
         return category.map(CategoryUtils::toDto);
     }
 
-    // Lấy category theo slug
-    public Optional<CategoryDto> getCategoryBySlug(String slug) {
-        Optional<Category> category = categoryRepository.findBySlug(slug);
-        return category.map(CategoryUtils::toDto);
-    }
-
     // Tạo category mới với user ID = 1 (admin mặc định)
     public CategoryDto createCategory(CreateCategoryRequest request) {
         // Kiểm tra name đã tồn tại chưa

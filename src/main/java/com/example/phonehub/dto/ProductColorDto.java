@@ -15,7 +15,6 @@ public class ProductColorDto {
     private String name;
     private String slug;
     private String hexColor;
-    private UserDto createdBy;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

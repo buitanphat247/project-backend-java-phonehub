@@ -19,13 +19,19 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
     @Override
     @EntityGraph(attributePaths = {"category","createdBy","specifications","colors","images"})
     Optional<Product> findById(Integer id);
+    @EntityGraph(attributePaths = {"category","createdBy"})
+    @Override
+    org.springframework.data.domain.Page<Product> findAll(org.springframework.data.domain.Pageable pageable);
     
+    @EntityGraph(attributePaths = {"category","createdBy"})
     @Query("SELECT p FROM Product p WHERE p.isPublished = true")
     Page<Product> findPublishedProducts(Pageable pageable);
     
+    @EntityGraph(attributePaths = {"category","createdBy"})
     @Query("SELECT p FROM Product p WHERE p.category.id = :categoryId AND p.isPublished = true")
     Page<Product> findPublishedProductsByCategory(@Param("categoryId") Integer categoryId, Pageable pageable);
     
+    @EntityGraph(attributePaths = {"category","createdBy"})
     @Query("SELECT p FROM Product p WHERE p.brand = :brand AND p.isPublished = true")
     Page<Product> findPublishedProductsByBrand(@Param("brand") String brand, Pageable pageable);
     

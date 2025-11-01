@@ -22,8 +22,22 @@ public class ProductUtils {
         if (p.getImages()!=null) d.setImages(toImageList(p.getImages()));
         return d;
     }
+    public static ProductDto toDtoSummary(Product p){
+        if (p==null) return null; ProductDto d=new ProductDto();
+        d.setId(p.getId()); d.setName(p.getName()); d.setSlug(p.getSlug()); d.setBrand(p.getBrand());
+        if (p.getCategory()!=null) d.setCategory(CategoryUtils.toDto(p.getCategory()));
+        d.setPrice(p.getPrice()); d.setPriceOld(p.getPriceOld()); d.setDiscount(p.getDiscount());
+        d.setThumbnailImage(p.getThumbnailImage()); d.setIsPublished(p.getIsPublished()); d.setPublishedAt(p.getPublishedAt());
+        if (p.getCreatedBy()!=null) d.setCreatedBy(UserUtils.toDto(p.getCreatedBy()));
+        d.setCreatedAt(p.getCreatedAt()); d.setUpdatedAt(p.getUpdatedAt());
+        return d;
+    }
     public static Page<ProductDto> toDtoPage(Page<Product> page){
         List<ProductDto> list = page.getContent().stream().map(ProductUtils::toDto).collect(Collectors.toList());
+        return new PageImpl<>(list, page.getPageable(), page.getTotalElements());
+    }
+    public static Page<ProductDto> toDtoPageSummary(Page<Product> page){
+        List<ProductDto> list = page.getContent().stream().map(ProductUtils::toDtoSummary).collect(Collectors.toList());
         return new PageImpl<>(list, page.getPageable(), page.getTotalElements());
     }
 

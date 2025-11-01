@@ -27,10 +27,10 @@ public class ProductService {
     @Autowired private CategoryRepository categoryRepository;
     @Autowired private UserRepository userRepository;
 
-    public Page<ProductDto> getAll(int page, int size){ Pageable p= PageRequest.of(page,size); return ProductUtils.toDtoPage(productRepository.findAll(p)); }
-    public Page<ProductDto> getPublished(int page, int size){ return ProductUtils.toDtoPage(productRepository.findPublishedProducts(PageRequest.of(page,size))); }
-    public Page<ProductDto> getPublishedByCategory(Integer categoryId,int page,int size){ return ProductUtils.toDtoPage(productRepository.findPublishedProductsByCategory(categoryId, PageRequest.of(page,size))); }
-    public Page<ProductDto> getPublishedByBrand(String brand,int page,int size){ return ProductUtils.toDtoPage(productRepository.findPublishedProductsByBrand(brand, PageRequest.of(page,size))); }
+    public Page<ProductDto> getAll(int page, int size){ Pageable p= PageRequest.of(page,size); return ProductUtils.toDtoPageSummary(productRepository.findAll(p)); }
+    public Page<ProductDto> getPublished(int page, int size){ return ProductUtils.toDtoPageSummary(productRepository.findPublishedProducts(PageRequest.of(page,size))); }
+    public Page<ProductDto> getPublishedByCategory(Integer categoryId,int page,int size){ return ProductUtils.toDtoPageSummary(productRepository.findPublishedProductsByCategory(categoryId, PageRequest.of(page,size))); }
+    public Page<ProductDto> getPublishedByBrand(String brand,int page,int size){ return ProductUtils.toDtoPageSummary(productRepository.findPublishedProductsByBrand(brand, PageRequest.of(page,size))); }
     public Optional<ProductDto> getById(Integer id){ return productRepository.findById(id).map(ProductUtils::toDto);}    
     public Optional<ProductDto> getBySlug(String slug){ return productRepository.findBySlug(slug).map(ProductUtils::toDto);} 
 

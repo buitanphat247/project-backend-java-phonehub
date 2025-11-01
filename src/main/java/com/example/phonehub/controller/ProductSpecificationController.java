@@ -30,20 +30,26 @@ public class ProductSpecificationController {
         } catch (Exception e){ return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("Lỗi: "+e.getMessage())); }
     }
 
+    @Operation(summary = "➕ Tạo thông số kỹ thuật mới", description = "Tạo một thông số kỹ thuật mới cho sản phẩm")
     @PostMapping
     public ResponseEntity<ApiResponse<ProductSpecificationDto>> create(@Valid @RequestBody CreateProductSpecificationRequest req){
         try { return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("Tạo thông số thành công", specService.create(req))); }
         catch (RuntimeException e){ return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.badRequest(e.getMessage())); }
     }
 
+    @Operation(summary = "✏️ Cập nhật thông số kỹ thuật", description = "Cập nhật thông tin thông số kỹ thuật theo ID")
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<ProductSpecificationDto>> update(@PathVariable Integer id, @Valid @RequestBody CreateProductSpecificationRequest req){
+    public ResponseEntity<ApiResponse<ProductSpecificationDto>> update(
+            @Parameter(description = "ID của thông số kỹ thuật", required = true, example = "1") @PathVariable Integer id, 
+            @Valid @RequestBody CreateProductSpecificationRequest req){
         try { return ResponseEntity.ok(ApiResponse.success("Cập nhật thông số thành công", specService.update(id, req))); }
         catch (RuntimeException e){ return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.badRequest(e.getMessage())); }
     }
 
+    @Operation(summary = "🗑️ Xóa thông số kỹ thuật", description = "Xóa thông số kỹ thuật theo ID")
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Integer id){
+    public ResponseEntity<ApiResponse<Void>> delete(
+            @Parameter(description = "ID của thông số kỹ thuật", required = true, example = "1") @PathVariable Integer id){
         try { specService.delete(id); return ResponseEntity.ok(ApiResponse.success("Xóa thông số thành công", null)); }
         catch (RuntimeException e){ return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.badRequest(e.getMessage())); }
     }

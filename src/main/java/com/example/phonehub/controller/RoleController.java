@@ -1,5 +1,6 @@
 package com.example.phonehub.controller;
 
+import com.example.phonehub.auth.annotation.Public;
 import com.example.phonehub.dto.ApiResponse;
 import com.example.phonehub.dto.CreateRoleRequest;
 import com.example.phonehub.dto.RoleDto;
@@ -22,6 +23,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/roles")
+@Public
 @Tag(name = "Role Management", description = "API quản lý vai trò người dùng")
 public class RoleController {
 

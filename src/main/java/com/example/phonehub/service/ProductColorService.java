@@ -9,7 +9,6 @@ import com.example.phonehub.repository.ProductColorRepository;
 import com.example.phonehub.repository.ProductRepository;
 import com.example.phonehub.repository.UserRepository;
 import com.example.phonehub.utils.ProductUtils;
-import com.example.phonehub.utils.SlugUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,20 +25,16 @@ public class ProductColorService {
     public List<ProductColorDto> getByProduct(Integer productId){ return ProductUtils.toColorList(colorRepository.findByProductId(productId)); }
 
     public ProductColorDto create(CreateProductColorRequest req){
-        String slug = (req.getSlug()==null||req.getSlug().isEmpty()) ? SlugUtils.generateSlug(req.getName()) : req.getSlug();
-        if (colorRepository.existsBySlug(slug)) throw new RuntimeException("Color with slug '"+slug+"' already exists");
         Product product = productRepository.findById(req.getProductId()).orElseThrow(() -> new RuntimeException("Product not found: "+req.getProductId()));
         User admin = userRepository.findById(1).orElseThrow(() -> new RuntimeException("Admin user with ID 1 not found"));
-        ProductColor c = new ProductColor(); c.setProduct(product); c.setName(req.getName()); c.setSlug(slug); c.setHexColor(req.getHexColor()); c.setCreatedBy(admin);
+        ProductColor c = new ProductColor(); c.setProduct(product); c.setName(req.getName()); c.setHexColor(req.getHexColor()); c.setCreatedBy(admin);
         return ProductUtils.toDto(colorRepository.save(c));
     }
 
     public ProductColorDto update(Integer id, CreateProductColorRequest req){
         ProductColor c = colorRepository.findById(id).orElseThrow(() -> new RuntimeException("Color not found with id: "+id));
-        String slug = (req.getSlug()==null||req.getSlug().isEmpty()) ? SlugUtils.generateSlug(req.getName()) : req.getSlug();
-        if (!c.getSlug().equals(slug) && colorRepository.existsBySlug(slug)) throw new RuntimeException("Color with slug '"+slug+"' already exists");
         Product product = productRepository.findById(req.getProductId()).orElseThrow(() -> new RuntimeException("Product not found: "+req.getProductId()));
-        c.setProduct(product); c.setName(req.getName()); c.setSlug(slug); c.setHexColor(req.getHexColor());
+        c.setProduct(product); c.setName(req.getName()); c.setHexColor(req.getHexColor());
         return ProductUtils.toDto(colorRepository.save(c));
     }
 

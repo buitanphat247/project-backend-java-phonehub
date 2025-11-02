@@ -54,9 +54,20 @@ public class SecurityAnnotationConfig {
             // If method has @Public, it's public regardless of class
             boolean isPublic = (isPublicMethod || isPublicClass) && !requiresAuthMethod;
             
-            if (isPublic && mappingInfo.getPatternValues() != null) {
-                Set<String> patterns = mappingInfo.getPatternValues();
-                urls.addAll(patterns);
+            if (isPublic) {
+                // Add direct patterns
+                if (mappingInfo.getPatternValues() != null) {
+                    Set<String> patterns = mappingInfo.getPatternValues();
+                    urls.addAll(patterns);
+                }
+                // Add path patterns (includes patterns with variables like {id})
+                if (mappingInfo.getPathPatternsCondition() != null && 
+                    mappingInfo.getPathPatternsCondition().getPatterns() != null) {
+                    Set<String> pathPatterns = mappingInfo.getPathPatternsCondition().getPatterns().stream()
+                            .map(pattern -> pattern.getPatternString())
+                            .collect(java.util.stream.Collectors.toSet());
+                    urls.addAll(pathPatterns);
+                }
             }
         }
         

@@ -1,5 +1,6 @@
 package com.example.phonehub.controller;
 
+import com.example.phonehub.auth.annotation.Public;
 import com.example.phonehub.dto.*;
 import com.example.phonehub.service.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,6 +23,7 @@ public class ProductController {
 
     @Operation(summary = "📄 Lấy danh sách sản phẩm có phân trang", description = "Trả về danh sách tất cả sản phẩm với phân trang")
     @GetMapping
+    @Public
     public ResponseEntity<ApiResponse<Page<ProductDto>>> getAll(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size){
         try { return ResponseEntity.ok(ApiResponse.success("Lấy danh sách sản phẩm thành công", productService.getAll(page,size))); }
         catch (Exception e){ return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("Lỗi: "+e.getMessage())); }
@@ -29,6 +31,7 @@ public class ProductController {
 
     @Operation(summary = "📄 Lấy danh sách sản phẩm đã xuất bản", description = "Trả về danh sách sản phẩm đã được xuất bản với phân trang")
     @GetMapping("/published")
+    @Public
     public ResponseEntity<ApiResponse<Page<ProductDto>>> getPublished(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size){
         try { return ResponseEntity.ok(ApiResponse.success(productService.getPublished(page,size))); }
         catch (Exception e){ return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("Lỗi: "+e.getMessage())); }
@@ -36,6 +39,7 @@ public class ProductController {
 
     @Operation(summary = "📄 Lấy danh sách sản phẩm theo danh mục", description = "Trả về danh sách sản phẩm đã xuất bản theo danh mục với phân trang")
     @GetMapping("/published/category/{categoryId}")
+    @Public
     public ResponseEntity<ApiResponse<Page<ProductDto>>> getByCategory(
             @Parameter(description = "ID của danh mục", required = true, example = "1") @PathVariable Integer categoryId, 
             @RequestParam(defaultValue = "0") int page, 
@@ -44,18 +48,28 @@ public class ProductController {
         catch (Exception e){ return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("Lỗi: "+e.getMessage())); }
     }
 
-    @Operation(summary = "📄 Lấy danh sách sản phẩm theo thương hiệu", description = "Trả về danh sách sản phẩm đã xuất bản theo thương hiệu với phân trang")
+    @Operation(summary = "📄 Lấy danh sách sản phẩm theo thương hiệu", description = "Trả về danh sách sản phẩm đã xuất bản theo thương hiệu (và danh mục nếu có) với phân trang")
     @GetMapping("/published/brand")
+    @Public
     public ResponseEntity<ApiResponse<Page<ProductDto>>> getByBrand(
-            @Parameter(description = "Tên thương hiệu", required = true, example = "OPPO") @RequestParam String brand, 
+            @Parameter(description = "Tên thương hiệu", required = true, example = "Samsung") @RequestParam String brand,
+            @Parameter(description = "ID của danh mục (optional, để lọc chính xác hơn)", example = "1") @RequestParam(required = false) Integer categoryId,
             @RequestParam(defaultValue = "0") int page, 
             @RequestParam(defaultValue = "10") int size){
-        try { return ResponseEntity.ok(ApiResponse.success(productService.getPublishedByBrand(brand,page,size))); }
-        catch (Exception e){ return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("Lỗi: "+e.getMessage())); }
+        try {
+            Page<ProductDto> products;
+            if (categoryId != null) {
+                products = productService.getPublishedByBrandAndCategory(brand, categoryId, page, size);
+            } else {
+                products = productService.getPublishedByBrand(brand, page, size);
+            }
+            return ResponseEntity.ok(ApiResponse.success(products));
+        } catch (Exception e){ return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("Lỗi: "+e.getMessage())); }
     }
 
     @Operation(summary = "🔍 Lấy sản phẩm theo ID", description = "Trả về thông tin chi tiết sản phẩm theo ID")
     @GetMapping("/{id}")
+    @Public
     public ResponseEntity<ApiResponse<ProductDto>> getById(
             @Parameter(description = "ID của sản phẩm", required = true, example = "1") @PathVariable Integer id){
         try {
@@ -65,14 +79,33 @@ public class ProductController {
         } catch (Exception e){ return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("Lỗi: "+e.getMessage())); }
     }
 
-    @Operation(summary = "🔎 Tìm sản phẩm theo slug", description = "Tìm kiếm sản phẩm theo slug")
+    @Operation(summary = "🔎 Tìm sản phẩm theo tên", description = "Tìm kiếm sản phẩm theo tên (tìm kiếm mờ - partial match) với phân trang. Có thể kèm theo categoryId để lọc chính xác hơn")
+    @Public
     @GetMapping("/search")
-    public ResponseEntity<ApiResponse<ProductDto>> getBySlug(
-            @Parameter(description = "Slug của sản phẩm", required = true, example = "may-tinh-bang-oppo-pad-se") @RequestParam String slug){
+    public ResponseEntity<ApiResponse<Page<ProductDto>>> searchByName(
+            @Parameter(description = "Tên sản phẩm cần tìm", required = true, example = "OPPO Pad") @RequestParam String name,
+            @Parameter(description = "ID của danh mục (optional, để lọc chính xác hơn)", example = "1") @RequestParam(required = false) Integer categoryId,
+            @Parameter(description = "Số trang (bắt đầu từ 0)", example = "0") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Số lượng sản phẩm mỗi trang", example = "10") @RequestParam(defaultValue = "10") int size){
         try {
-            Optional<ProductDto> p = productService.getBySlug(slug);
-            return p.map(productDto -> ResponseEntity.ok(ApiResponse.success("Tìm thấy sản phẩm", productDto)))
-                    .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.notFound("Không tìm thấy sản phẩm")));
+            Page<ProductDto> products;
+            if (categoryId != null) {
+                products = productService.searchByNameAndCategory(name, categoryId, page, size);
+            } else {
+                products = productService.searchByName(name, page, size);
+            }
+            return ResponseEntity.ok(ApiResponse.success("Tìm thấy " + products.getTotalElements() + " sản phẩm", products));
+        } catch (Exception e){ return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("Lỗi: "+e.getMessage())); }
+    }
+
+    @Operation(summary = "🏷️ Lấy danh sách thương hiệu theo danh mục", description = "Trả về danh sách tất cả thương hiệu (brand) của sản phẩm đã xuất bản trong một danh mục cụ thể")
+    @GetMapping("/brands/category/{categoryId}")
+    @Public
+    public ResponseEntity<ApiResponse<java.util.List<String>>> getBrandsByCategory(
+            @Parameter(description = "ID của danh mục", required = true, example = "1") @PathVariable Integer categoryId){
+        try {
+            java.util.List<String> brands = productService.getBrandsByCategory(categoryId);
+            return ResponseEntity.ok(ApiResponse.success("Lấy danh sách thương hiệu thành công (" + brands.size() + " thương hiệu)", brands));
         } catch (Exception e){ return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("Lỗi: "+e.getMessage())); }
     }
 

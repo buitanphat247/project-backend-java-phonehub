@@ -31,8 +31,12 @@ public class ProductService {
     public Page<ProductDto> getPublished(int page, int size){ return ProductUtils.toDtoPageSummary(productRepository.findPublishedProducts(PageRequest.of(page,size))); }
     public Page<ProductDto> getPublishedByCategory(Integer categoryId,int page,int size){ return ProductUtils.toDtoPageSummary(productRepository.findPublishedProductsByCategory(categoryId, PageRequest.of(page,size))); }
     public Page<ProductDto> getPublishedByBrand(String brand,int page,int size){ return ProductUtils.toDtoPageSummary(productRepository.findPublishedProductsByBrand(brand, PageRequest.of(page,size))); }
+    public Page<ProductDto> getPublishedByBrandAndCategory(String brand, Integer categoryId, int page, int size){ return ProductUtils.toDtoPageSummary(productRepository.findPublishedProductsByBrandAndCategory(brand, categoryId, PageRequest.of(page,size))); }
+    public Page<ProductDto> searchByName(String name,int page,int size){ return ProductUtils.toDtoPageSummary(productRepository.findPublishedProductsByName(name, PageRequest.of(page,size))); }
+    public Page<ProductDto> searchByNameAndCategory(String name, Integer categoryId, int page, int size){ return ProductUtils.toDtoPageSummary(productRepository.findPublishedProductsByNameAndCategory(name, categoryId, PageRequest.of(page,size))); }
     public Optional<ProductDto> getById(Integer id){ return productRepository.findById(id).map(ProductUtils::toDto);}    
-    public Optional<ProductDto> getBySlug(String slug){ return productRepository.findBySlug(slug).map(ProductUtils::toDto);} 
+    public Optional<ProductDto> getBySlug(String slug){ return productRepository.findBySlug(slug).map(ProductUtils::toDto);}
+    public java.util.List<String> getBrandsByCategory(Integer categoryId){ return productRepository.findAllPublishedBrandsByCategoryId(categoryId);} 
 
     public ProductDto create(CreateProductRequest req){
         String slug = (req.getSlug()==null || req.getSlug().isEmpty()) ? SlugUtils.generateSlug(req.getName()) : req.getSlug();

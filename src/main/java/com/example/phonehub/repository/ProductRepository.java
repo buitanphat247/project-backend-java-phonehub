@@ -19,22 +19,37 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
     @Override
     @EntityGraph(attributePaths = {"category","createdBy","specifications","colors","images"})
     Optional<Product> findById(Integer id);
-    @EntityGraph(attributePaths = {"category","createdBy"})
+    @EntityGraph(attributePaths = {"category"})
     @Override
     org.springframework.data.domain.Page<Product> findAll(org.springframework.data.domain.Pageable pageable);
     
-    @EntityGraph(attributePaths = {"category","createdBy"})
+    @EntityGraph(attributePaths = {"category"})
     @Query("SELECT p FROM Product p WHERE p.isPublished = true")
     Page<Product> findPublishedProducts(Pageable pageable);
     
-    @EntityGraph(attributePaths = {"category","createdBy"})
+    @EntityGraph(attributePaths = {"category"})
     @Query("SELECT p FROM Product p WHERE p.category.id = :categoryId AND p.isPublished = true")
     Page<Product> findPublishedProductsByCategory(@Param("categoryId") Integer categoryId, Pageable pageable);
     
-    @EntityGraph(attributePaths = {"category","createdBy"})
+    @EntityGraph(attributePaths = {"category"})
     @Query("SELECT p FROM Product p WHERE p.brand = :brand AND p.isPublished = true")
     Page<Product> findPublishedProductsByBrand(@Param("brand") String brand, Pageable pageable);
     
+    @EntityGraph(attributePaths = {"category"})
+    @Query("SELECT p FROM Product p WHERE p.brand = :brand AND p.category.id = :categoryId AND p.isPublished = true")
+    Page<Product> findPublishedProductsByBrandAndCategory(@Param("brand") String brand, @Param("categoryId") Integer categoryId, Pageable pageable);
+    
+    @EntityGraph(attributePaths = {"category"})
+    @Query("SELECT p FROM Product p WHERE LOWER(p.name) LIKE LOWER(CONCAT('%', :name, '%')) AND p.isPublished = true")
+    Page<Product> findPublishedProductsByName(@Param("name") String name, Pageable pageable);
+    
+    @EntityGraph(attributePaths = {"category"})
+    @Query("SELECT p FROM Product p WHERE LOWER(p.name) LIKE LOWER(CONCAT('%', :name, '%')) AND p.category.id = :categoryId AND p.isPublished = true")
+    Page<Product> findPublishedProductsByNameAndCategory(@Param("name") String name, @Param("categoryId") Integer categoryId, Pageable pageable);
+    
     @Query("SELECT DISTINCT p.brand FROM Product p WHERE p.isPublished = true ORDER BY p.brand")
     java.util.List<String> findAllPublishedBrands();
+    
+    @Query("SELECT DISTINCT p.brand FROM Product p WHERE p.category.id = :categoryId AND p.isPublished = true ORDER BY p.brand")
+    java.util.List<String> findAllPublishedBrandsByCategoryId(@Param("categoryId") Integer categoryId);
 }

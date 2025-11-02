@@ -3,6 +3,7 @@ package com.example.phonehub.auth.config;
 import com.example.phonehub.auth.AuthEntryPointJwt;
 import com.example.phonehub.auth.AuthTokenFilter;
 import com.example.phonehub.auth.interceptor.RoleBasedAccessInterceptor;
+import com.example.phonehub.config.CorsConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,6 +35,9 @@ public class WebSecurityConfig implements WebMvcConfigurer {
     @Autowired
     private RoleBasedAccessInterceptor roleBasedAccessInterceptor;
     
+    @Autowired
+    private CorsConfig corsConfig;
+    
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -50,6 +54,7 @@ public class WebSecurityConfig implements WebMvcConfigurer {
         Set<String> publicUrls = securityAnnotationConfig.publicUrls();
         
         http
+                .cors(cors -> cors.configurationSource(corsConfig.corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -62,8 +67,24 @@ public class WebSecurityConfig implements WebMvcConfigurer {
                     auth.requestMatchers("/actuator/**").permitAll();
                     
                     // Dynamic public URLs from @Public annotation
+                    // Group URLs by base path to handle path variables
+                    java.util.Set<String> basePaths = new java.util.HashSet<>();
                     for (String url : publicUrls) {
+                        // Add the exact URL pattern
                         auth.requestMatchers(url).permitAll();
+                        // Extract base path with wildcard for path variables (e.g., /api/v1/users/** from /api/v1/users/{id})
+                        String basePath = url.replaceAll("/\\{[^}]+\\}", "/**");
+                        if (!basePath.equals(url) && !basePaths.contains(basePath)) {
+                            basePaths.add(basePath);
+                            auth.requestMatchers(basePath).permitAll();
+                        }
+                        // Also add base path without trailing /** if needed
+                        String basePathNoWildcard = url.replaceAll("/\\{[^}]+\\}", "");
+                        if (!basePathNoWildcard.equals(url) && !basePathNoWildcard.equals(basePath) && 
+                            !basePaths.contains(basePathNoWildcard + "/**")) {
+                            basePaths.add(basePathNoWildcard + "/**");
+                            auth.requestMatchers(basePathNoWildcard + "/**").permitAll();
+                        }
                     }
                     
                     // All other requests require authentication

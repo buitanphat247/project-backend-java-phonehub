@@ -31,11 +31,6 @@ public class ProductColor {
     @Size(max = 50, message = "Color name must not exceed 50 characters")
     private String name;
     
-    @Column(name = "slug", unique = true, nullable = false, length = 100)
-    @NotBlank(message = "Color slug is required")
-    @Size(max = 100, message = "Color slug must not exceed 100 characters")
-    private String slug;
-    
     @Column(name = "hex_color", length = 10)
     @Size(max = 10, message = "Hex color must not exceed 10 characters")
     private String hexColor;

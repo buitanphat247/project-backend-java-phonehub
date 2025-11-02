@@ -115,4 +115,31 @@ public class JwtUtil {
         }
         return false;
     }
+    
+    // Check if token is expired
+    public boolean isTokenExpired(String token) {
+        try {
+            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+            return false;
+        } catch (ExpiredJwtException e) {
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+    
+    // Get claims from expired token (can still read claims even if expired)
+    public Claims getClaimsFromExpiredToken(String token) throws ExpiredJwtException {
+        try {
+            return getAllClaimsFromToken(token);
+        } catch (ExpiredJwtException e) {
+            return e.getClaims(); // Return claims from expired token
+        }
+    }
+    
+    // Get user ID from expired token
+    public Integer getUserIdFromExpiredToken(String token) throws ExpiredJwtException {
+        Claims claims = getClaimsFromExpiredToken(token);
+        return claims.get("id", Integer.class);
+    }
 }

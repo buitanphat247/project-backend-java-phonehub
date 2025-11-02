@@ -52,8 +52,20 @@ public class UserService {
         return user.map(UserUtils::toDto);
     }
 
+    // Tìm kiếm user theo username hoặc email với phân trang
+    public Page<UserDto> searchByKeyword(String keyword, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<User> userPage = userRepository.searchByUsernameOrEmail(keyword, pageable);
+        return UserUtils.toDtoPage(userPage);
+    }
+
     // Tạo user mới với role ID = 3 (cấp thấp nhất)
     public UserDto createUser(CreateUserRequest request) {
+        // Kiểm tra password là required khi create
+        if (request.getPassword() == null || request.getPassword().trim().isEmpty()) {
+            throw new RuntimeException("Password is required");
+        }
+        
         // Kiểm tra username đã tồn tại chưa
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new RuntimeException("User with username '" + request.getUsername() + "' already exists");
@@ -64,9 +76,15 @@ public class UserService {
             throw new RuntimeException("User with email '" + request.getEmail() + "' already exists");
         }
 
-        // Lấy role ID = 3 (cấp thấp nhất)
-        Role defaultRole = roleRepository.findById(3)
-                .orElseThrow(() -> new RuntimeException("Default role with ID 3 not found"));
+        // Lấy role: nếu có roleId thì dùng, không thì mặc định role ID = 3 (cấp thấp nhất)
+        Role userRole;
+        if (request.getRoleId() != null) {
+            userRole = roleRepository.findById(request.getRoleId())
+                    .orElseThrow(() -> new RuntimeException("Role not found with id: " + request.getRoleId()));
+        } else {
+            userRole = roleRepository.findById(3)
+                    .orElseThrow(() -> new RuntimeException("Default role with ID 3 not found"));
+        }
 
         User user = new User();
         user.setUsername(request.getUsername());
@@ -75,7 +93,7 @@ public class UserService {
         user.setPhone(request.getPhone());
         user.setAddress(request.getAddress());
         user.setAvatar(request.getAvatar());
-        user.setRole(defaultRole); // Gán role ID = 3
+        user.setRole(userRole);
         
         User savedUser = userRepository.save(user);
         return UserUtils.toDto(savedUser);
@@ -86,25 +104,58 @@ public class UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
 
-        // Kiểm tra username mới có trùng với user khác không
-        if (!user.getUsername().equals(request.getUsername()) && 
-            userRepository.existsByUsername(request.getUsername())) {
-            throw new RuntimeException("User with username '" + request.getUsername() + "' already exists");
+        // Chỉ update username nếu được truyền vào
+        if (request.getUsername() != null && !request.getUsername().trim().isEmpty()) {
+            // Kiểm tra username mới có trùng với user khác không
+            if (!user.getUsername().equals(request.getUsername()) && 
+                userRepository.existsByUsername(request.getUsername())) {
+                throw new RuntimeException("User with username '" + request.getUsername() + "' already exists");
+            }
+            user.setUsername(request.getUsername());
         }
 
-        // Kiểm tra email mới có trùng với user khác không
-        if (request.getEmail() != null && 
-            !user.getEmail().equals(request.getEmail()) && 
-            userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("User with email '" + request.getEmail() + "' already exists");
+        // Chỉ update password nếu được truyền vào
+        if (request.getPassword() != null && !request.getPassword().trim().isEmpty()) {
+            user.setPassword(PasswordUtils.encodeMD5(request.getPassword()));
         }
 
-        user.setUsername(request.getUsername());
-        user.setPassword(PasswordUtils.encodeMD5(request.getPassword())); // Mã hóa password MD5
-        user.setEmail(request.getEmail());
-        user.setPhone(request.getPhone());
-        user.setAddress(request.getAddress());
-        user.setAvatar(request.getAvatar());
+        // Chỉ update email nếu được truyền vào
+        if (request.getEmail() != null && !request.getEmail().trim().isEmpty()) {
+            String email = request.getEmail().trim();
+            // Validate email format
+            if (!email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
+                throw new RuntimeException("Email format is invalid");
+            }
+            // Kiểm tra email mới có trùng với user khác không
+            if (user.getEmail() == null || !email.equals(user.getEmail())) {
+                if (userRepository.existsByEmail(email)) {
+                    throw new RuntimeException("User with email '" + email + "' already exists");
+                }
+            }
+            user.setEmail(email);
+        }
+
+        // Chỉ update phone nếu được truyền vào
+        if (request.getPhone() != null) {
+            user.setPhone(request.getPhone().trim().isEmpty() ? null : request.getPhone());
+        }
+
+        // Chỉ update address nếu được truyền vào
+        if (request.getAddress() != null) {
+            user.setAddress(request.getAddress().trim().isEmpty() ? null : request.getAddress());
+        }
+
+        // Chỉ update avatar nếu được truyền vào
+        if (request.getAvatar() != null) {
+            user.setAvatar(request.getAvatar().trim().isEmpty() ? null : request.getAvatar());
+        }
+
+        // Chỉ update role nếu được truyền vào
+        if (request.getRoleId() != null) {
+            Role role = roleRepository.findById(request.getRoleId())
+                    .orElseThrow(() -> new RuntimeException("Role not found with id: " + request.getRoleId()));
+            user.setRole(role);
+        }
         
         User updatedUser = userRepository.save(user);
         return UserUtils.toDto(updatedUser);

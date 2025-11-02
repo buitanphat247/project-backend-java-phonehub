@@ -28,7 +28,6 @@ public class ProductUtils {
         if (p.getCategory()!=null) d.setCategory(CategoryUtils.toDto(p.getCategory()));
         d.setPrice(p.getPrice()); d.setPriceOld(p.getPriceOld()); d.setDiscount(p.getDiscount());
         d.setThumbnailImage(p.getThumbnailImage()); d.setIsPublished(p.getIsPublished()); d.setPublishedAt(p.getPublishedAt());
-        if (p.getCreatedBy()!=null) d.setCreatedBy(UserUtils.toDto(p.getCreatedBy()));
         d.setCreatedAt(p.getCreatedAt()); d.setUpdatedAt(p.getUpdatedAt());
         return d;
     }
@@ -44,7 +43,7 @@ public class ProductUtils {
     public static ProductColorDto toDto(ProductColor c){
         if (c==null) return null; ProductColorDto d=new ProductColorDto();
         d.setId(c.getId()); d.setProductId(c.getProduct()!=null?c.getProduct().getId():null);
-        d.setName(c.getName()); d.setSlug(c.getSlug()); d.setHexColor(c.getHexColor());
+        d.setName(c.getName()); d.setHexColor(c.getHexColor());
         d.setCreatedAt(c.getCreatedAt()); d.setUpdatedAt(c.getUpdatedAt()); return d;
     }
     public static List<ProductColorDto> toColorList(List<ProductColor> list){ return list.stream().map(ProductUtils::toDto).collect(Collectors.toList()); }

@@ -1,6 +1,6 @@
 package com.example.phonehub.controller;
 
-import com.example.phonehub.auth.annotation.RequiresAuth;
+import com.example.phonehub.auth.annotation.Public;
 import com.example.phonehub.dto.ApiResponse;
 import com.example.phonehub.dto.CreateUserRequest;
 import com.example.phonehub.dto.UserDto;
@@ -25,12 +25,12 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/v1/users")
 @Tag(name = "User Management", description = "API quản lý người dùng")
+@Public
 public class UserController {
 
     @Autowired
     private UserService userService;
 
-    @RequiresAuth(roles = {"ADMIN"})
     @Operation(summary = "📄 Lấy danh sách người dùng có phân trang", description = "Trả về danh sách người dùng với phân trang")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "✅ Lấy danh sách thành công")
@@ -73,49 +73,21 @@ public class UserController {
         }
     }
 
-    @Operation(summary = "🔎 Tìm người dùng theo username", description = "Tìm kiếm người dùng theo username")
+    @Operation(summary = "🔎 Tìm kiếm người dùng", description = "Tìm kiếm người dùng theo username hoặc email (tìm kiếm mờ - partial match) với phân trang")
     @ApiResponses(value = {
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "✅ Tìm thấy người dùng"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "❌ Không tìm thấy người dùng")
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "✅ Tìm thấy người dùng")
     })
-    @GetMapping("/search/username")
-    public ResponseEntity<ApiResponse<UserDto>> getUserByUsername(
-            @Parameter(description = "Username", required = true, example = "john_doe") @RequestParam String username) {
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<Page<UserDto>>> searchUsers(
+            @Parameter(description = "Từ khóa tìm kiếm (username hoặc email)", required = true, example = "john") @RequestParam String keyword,
+            @Parameter(description = "Số trang (bắt đầu từ 0)", example = "0") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Số lượng người dùng mỗi trang", example = "10") @RequestParam(defaultValue = "10") int size) {
         try {
-            Optional<UserDto> user = userService.getUserByUsername(username);
-            if (user.isPresent()) {
-                ApiResponse<UserDto> response = ApiResponse.success("Tìm thấy người dùng", user.get());
-                return ResponseEntity.ok(response);
-            } else {
-                ApiResponse<UserDto> response = ApiResponse
-                        .notFound("Không tìm thấy người dùng với username: " + username);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-            }
+            Page<UserDto> users = userService.searchByKeyword(keyword, page, size);
+            ApiResponse<Page<UserDto>> response = ApiResponse.success("Tìm thấy " + users.getTotalElements() + " người dùng", users);
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
-            ApiResponse<UserDto> response = ApiResponse.error("Lỗi khi tìm người dùng: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-        }
-    }
-
-    @Operation(summary = "📧 Tìm người dùng theo email", description = "Tìm kiếm người dùng theo email")
-    @ApiResponses(value = {
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "✅ Tìm thấy người dùng"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "❌ Không tìm thấy người dùng")
-    })
-    @GetMapping("/search/email")
-    public ResponseEntity<ApiResponse<UserDto>> getUserByEmail(
-            @Parameter(description = "Email", required = true, example = "john@example.com") @RequestParam String email) {
-        try {
-            Optional<UserDto> user = userService.getUserByEmail(email);
-            if (user.isPresent()) {
-                ApiResponse<UserDto> response = ApiResponse.success("Tìm thấy người dùng", user.get());
-                return ResponseEntity.ok(response);
-            } else {
-                ApiResponse<UserDto> response = ApiResponse.notFound("Không tìm thấy người dùng với email: " + email);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-            }
-        } catch (Exception e) {
-            ApiResponse<UserDto> response = ApiResponse.error("Lỗi khi tìm người dùng: " + e.getMessage());
+            ApiResponse<Page<UserDto>> response = ApiResponse.error("Lỗi khi tìm kiếm: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
@@ -128,14 +100,15 @@ public class UserController {
     })
     @PostMapping
     public ResponseEntity<ApiResponse<UserDto>> createUser(
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Thông tin người dùng mới", required = true, content = @Content(mediaType = "application/json", schema = @Schema(implementation = CreateUserRequest.class), examples = @ExampleObject(value = """
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Thông tin người dùng mới (roleId optional, mặc định = 3 nếu không có)", required = true, content = @Content(mediaType = "application/json", schema = @Schema(implementation = CreateUserRequest.class), examples = @ExampleObject(value = """
                     {
                       "username": "john_doe",
                       "password": "password123",
                       "email": "john@example.com",
                       "phone": "0123456789",
                       "address": "123 Main St",
-                      "avatar": "https://example.com/avatar.jpg"
+                      "avatar": "https://example.com/avatar.jpg",
+                      "roleId": 2
                     }
                     """))) @Valid @RequestBody CreateUserRequest request) {
         try {
@@ -164,16 +137,17 @@ public class UserController {
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<UserDto>> updateUser(
             @Parameter(description = "ID của người dùng", required = true, example = "1") @PathVariable Integer id,
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Thông tin cập nhật người dùng", required = true, content = @Content(mediaType = "application/json", schema = @Schema(implementation = CreateUserRequest.class), examples = @ExampleObject(value = """
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Thông tin cập nhật người dùng (các field là optional, chỉ gửi field cần cập nhật)", required = true, content = @Content(mediaType = "application/json", schema = @Schema(implementation = CreateUserRequest.class), examples = @ExampleObject(value = """
                     {
                       "username": "john_doe_updated",
                       "password": "newpassword123",
                       "email": "john.updated@example.com",
                       "phone": "0987654321",
                       "address": "456 Updated St",
-                      "avatar": "https://example.com/new-avatar.jpg"
+                      "avatar": "https://example.com/new-avatar.jpg",
+                      "roleId": 2
                     }
-                    """))) @Valid @RequestBody CreateUserRequest request) {
+                    """))) @RequestBody CreateUserRequest request) {
         try {
             UserDto user = userService.updateUser(id, request);
             ApiResponse<UserDto> response = ApiResponse.success("Cập nhật người dùng thành công", user);

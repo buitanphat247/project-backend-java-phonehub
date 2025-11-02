@@ -21,6 +21,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/v1/categories")
 @Tag(name = "Category Management", description = "API quản lý danh mục sản phẩm")
+@Public
 public class CategoryController {
 
     @Autowired

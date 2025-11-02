@@ -13,7 +13,6 @@ import lombok.NoArgsConstructor;
 public class CreateProductColorRequest {
     @NotNull private Integer productId;
     @NotBlank @Size(max = 50) private String name;
-    @Size(max = 100) private String slug;
     @Size(max = 10) private String hexColor;
 }
 

@@ -21,6 +21,7 @@ public class CreateProductRequest {
     private BigDecimal priceOld;
     private String discount;
     private String thumbnailImage;
+    private Integer quantity;
     private Boolean isPublished;
 }
 

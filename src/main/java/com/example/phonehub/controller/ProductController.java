@@ -5,6 +5,10 @@ import com.example.phonehub.dto.*;
 import com.example.phonehub.service.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -110,8 +114,36 @@ public class ProductController {
     }
 
     @Operation(summary = "➕ Tạo sản phẩm mới", description = "Tạo một sản phẩm mới trong hệ thống")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "✅ Tạo sản phẩm thành công"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "❌ Dữ liệu không hợp lệ"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "❌ Slug sản phẩm đã tồn tại")
+    })
     @PostMapping
-    public ResponseEntity<ApiResponse<ProductDto>> create(@Valid @RequestBody CreateProductRequest req){
+    public ResponseEntity<ApiResponse<ProductDto>> create(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                description = "Thông tin sản phẩm mới",
+                required = true,
+                content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = CreateProductRequest.class),
+                    examples = @ExampleObject(value = """
+                        {
+                          "name": "iPhone 15 Pro Max",
+                          "slug": "iphone-15-pro-max",
+                          "brand": "Apple",
+                          "categoryId": 1,
+                          "price": 29990000,
+                          "priceOld": 32990000,
+                          "discount": "9%",
+                          "thumbnailImage": "https://example.com/iphone-15-pro-max.jpg",
+                          "quantity": 50,
+                          "isPublished": true
+                        }
+                        """)
+                )
+            )
+            @Valid @RequestBody CreateProductRequest req){
         try { return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("Tạo sản phẩm thành công", productService.create(req))); }
         catch (RuntimeException e){
             if (e.getMessage().contains("already exists")) return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponse.conflict(e.getMessage()));
@@ -120,9 +152,36 @@ public class ProductController {
     }
 
     @Operation(summary = "✏️ Cập nhật sản phẩm", description = "Cập nhật thông tin sản phẩm theo ID")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "✅ Cập nhật sản phẩm thành công"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "❌ Không tìm thấy sản phẩm"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "❌ Slug sản phẩm đã tồn tại")
+    })
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<ProductDto>> update(
-            @Parameter(description = "ID của sản phẩm", required = true, example = "1") @PathVariable Integer id, 
+            @Parameter(description = "ID của sản phẩm", required = true, example = "1") @PathVariable Integer id,
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                description = "Thông tin cập nhật sản phẩm (các field là optional, chỉ gửi field cần cập nhật)",
+                required = true,
+                content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = CreateProductRequest.class),
+                    examples = @ExampleObject(value = """
+                        {
+                          "name": "iPhone 15 Pro Max Updated",
+                          "slug": "iphone-15-pro-max-updated",
+                          "brand": "Apple",
+                          "categoryId": 1,
+                          "price": 28990000,
+                          "priceOld": 31990000,
+                          "discount": "10%",
+                          "thumbnailImage": "https://example.com/iphone-15-pro-max-updated.jpg",
+                          "quantity": 75,
+                          "isPublished": true
+                        }
+                        """)
+                )
+            )
             @Valid @RequestBody CreateProductRequest req){
         try { return ResponseEntity.ok(ApiResponse.success("Cập nhật sản phẩm thành công", productService.update(id, req))); }
         catch (RuntimeException e){

@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -50,6 +51,9 @@ public class User {
     @Column(name = "avatar", length = 255)
     @Size(max = 255, message = "Avatar URL must not exceed 255 characters")
     private String avatar;
+    
+    @Column(name = "birthday")
+    private LocalDate birthday;
     
     @Column(name = "refresh_token", length = 255)
     @Size(max = 255, message = "Refresh token must not exceed 255 characters")

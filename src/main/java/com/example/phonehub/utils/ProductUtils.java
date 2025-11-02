@@ -14,7 +14,7 @@ public class ProductUtils {
         d.setId(p.getId()); d.setName(p.getName()); d.setSlug(p.getSlug()); d.setBrand(p.getBrand());
         if (p.getCategory()!=null) d.setCategory(CategoryUtils.toDto(p.getCategory()));
         d.setPrice(p.getPrice()); d.setPriceOld(p.getPriceOld()); d.setDiscount(p.getDiscount());
-        d.setThumbnailImage(p.getThumbnailImage()); d.setIsPublished(p.getIsPublished()); d.setPublishedAt(p.getPublishedAt());
+        d.setThumbnailImage(p.getThumbnailImage()); d.setQuantity(p.getQuantity()); d.setIsPublished(p.getIsPublished()); d.setPublishedAt(p.getPublishedAt());
         if (p.getCreatedBy()!=null) d.setCreatedBy(UserUtils.toDto(p.getCreatedBy()));
         d.setCreatedAt(p.getCreatedAt()); d.setUpdatedAt(p.getUpdatedAt());
         if (p.getSpecifications()!=null) d.setSpecifications(toSpecList(p.getSpecifications()));
@@ -27,7 +27,7 @@ public class ProductUtils {
         d.setId(p.getId()); d.setName(p.getName()); d.setSlug(p.getSlug()); d.setBrand(p.getBrand());
         if (p.getCategory()!=null) d.setCategory(CategoryUtils.toDto(p.getCategory()));
         d.setPrice(p.getPrice()); d.setPriceOld(p.getPriceOld()); d.setDiscount(p.getDiscount());
-        d.setThumbnailImage(p.getThumbnailImage()); d.setIsPublished(p.getIsPublished()); d.setPublishedAt(p.getPublishedAt());
+        d.setThumbnailImage(p.getThumbnailImage()); d.setQuantity(p.getQuantity()); d.setIsPublished(p.getIsPublished()); d.setPublishedAt(p.getPublishedAt());
         d.setCreatedAt(p.getCreatedAt()); d.setUpdatedAt(p.getUpdatedAt());
         return d;
     }
@@ -62,6 +62,33 @@ public class ProductUtils {
         d.setCreatedAt(s.getCreatedAt()); d.setUpdatedAt(s.getUpdatedAt()); return d;
     }
     public static List<ProductSpecificationDto> toSpecList(List<ProductSpecification> list){ return list.stream().map(ProductUtils::toDto).collect(Collectors.toList()); }
+    
+    public static ProductFavoriteDto toDto(ProductFavorite pf){
+        if (pf==null) return null; ProductFavoriteDto d=new ProductFavoriteDto();
+        d.setId(pf.getId()); d.setUserId(pf.getUser()!=null?pf.getUser().getId():null);
+        d.setProductId(pf.getProduct()!=null?pf.getProduct().getId():null);
+        if (pf.getUser()!=null) d.setUser(UserUtils.toDto(pf.getUser()));
+        if (pf.getProduct()!=null) d.setProduct(toDtoSummary(pf.getProduct()));
+        d.setCreatedAt(pf.getCreatedAt()); return d;
+    }
+    public static Page<ProductFavoriteDto> toFavoriteDtoPage(Page<ProductFavorite> page){
+        List<ProductFavoriteDto> list = page.getContent().stream().map(ProductUtils::toDto).collect(Collectors.toList());
+        return new PageImpl<>(list, page.getPageable(), page.getTotalElements());
+    }
+    
+    public static ProductReviewDto toDto(ProductReview pr){
+        if (pr==null) return null; ProductReviewDto d=new ProductReviewDto();
+        d.setId(pr.getId()); d.setProductId(pr.getProduct()!=null?pr.getProduct().getId():null);
+        d.setUserId(pr.getUser()!=null?pr.getUser().getId():null);
+        if (pr.getProduct()!=null) d.setProduct(toDtoSummary(pr.getProduct()));
+        if (pr.getUser()!=null) d.setUser(UserUtils.toDto(pr.getUser()));
+        d.setRating(pr.getRating()); d.setComment(pr.getComment());
+        d.setCreatedAt(pr.getCreatedAt()); d.setUpdatedAt(pr.getUpdatedAt()); return d;
+    }
+    public static Page<ProductReviewDto> toReviewDtoPage(Page<ProductReview> page){
+        List<ProductReviewDto> list = page.getContent().stream().map(ProductUtils::toDto).collect(Collectors.toList());
+        return new PageImpl<>(list, page.getPageable(), page.getTotalElements());
+    }
 }
 
 

@@ -89,4 +89,48 @@ public class Database {
         return response;
     }
 
+    @PostMapping("/migrate/add-product-quantity-column")
+    public Map<String, Object> addProductQuantityColumn() {
+        Map<String, Object> response = new HashMap<>();
+        response.put("timestamp", LocalDateTime.now());
+
+        try (Connection connection = dataSource.getConnection();
+             Statement statement = connection.createStatement()) {
+            
+            // Check if column already exists
+            boolean columnExists = false;
+            try {
+                java.sql.DatabaseMetaData metaData = connection.getMetaData();
+                java.sql.ResultSet columns = metaData.getColumns(null, null, "products", "quantity");
+                if (columns.next()) {
+                    columnExists = true;
+                }
+            } catch (Exception e) {
+                // Ignore, will try to add anyway
+            }
+            
+            if (columnExists) {
+                response.put("status", "OK");
+                response.put("message", "Column 'quantity' already exists in products table");
+                response.put("action", "skipped");
+            } else {
+                // Add quantity column with default value 0 and NOT NULL
+                String sql = "ALTER TABLE products ADD COLUMN quantity INT NOT NULL DEFAULT 0";
+                statement.execute(sql);
+                
+                response.put("status", "OK");
+                response.put("message", "Successfully added 'quantity' column to products table");
+                response.put("action", "added");
+            }
+            
+        } catch (Exception e) {
+            response.put("status", "ERROR");
+            response.put("message", "Failed to add 'quantity' column to products table");
+            response.put("error", e.getMessage());
+            response.put("errorType", e.getClass().getSimpleName());
+        }
+
+        return response;
+    }
+
 }

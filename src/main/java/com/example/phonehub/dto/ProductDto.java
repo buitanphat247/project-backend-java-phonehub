@@ -23,6 +23,7 @@ public class ProductDto {
     private BigDecimal priceOld;
     private String discount;
     private String thumbnailImage;
+    private Integer quantity;
     private Boolean isPublished;
     private LocalDateTime publishedAt;
     private UserDto createdBy;

@@ -25,7 +25,6 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/v1/users")
 @Tag(name = "User Management", description = "API quản lý người dùng")
-@Public
 public class UserController {
 
     @Autowired
@@ -36,6 +35,7 @@ public class UserController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "✅ Lấy danh sách thành công")
     })
     @GetMapping
+    @Public
     public ResponseEntity<ApiResponse<Page<UserDto>>> getAllUsers(
             @Parameter(description = "Số trang (bắt đầu từ 0)", example = "0") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Số lượng người dùng mỗi trang", example = "10") @RequestParam(defaultValue = "10") int size) {
@@ -56,6 +56,7 @@ public class UserController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "❌ Không tìm thấy người dùng")
     })
     @GetMapping("/{id}")
+    @Public
     public ResponseEntity<ApiResponse<UserDto>> getUserById(
             @Parameter(description = "ID của người dùng", required = true, example = "1") @PathVariable Integer id) {
         try {
@@ -78,13 +79,15 @@ public class UserController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "✅ Tìm thấy người dùng")
     })
     @GetMapping("/search")
+    @Public
     public ResponseEntity<ApiResponse<Page<UserDto>>> searchUsers(
             @Parameter(description = "Từ khóa tìm kiếm (username hoặc email)", required = true, example = "john") @RequestParam String keyword,
             @Parameter(description = "Số trang (bắt đầu từ 0)", example = "0") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Số lượng người dùng mỗi trang", example = "10") @RequestParam(defaultValue = "10") int size) {
         try {
             Page<UserDto> users = userService.searchByKeyword(keyword, page, size);
-            ApiResponse<Page<UserDto>> response = ApiResponse.success("Tìm thấy " + users.getTotalElements() + " người dùng", users);
+            ApiResponse<Page<UserDto>> response = ApiResponse
+                    .success("Tìm thấy " + users.getTotalElements() + " người dùng", users);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             ApiResponse<Page<UserDto>> response = ApiResponse.error("Lỗi khi tìm kiếm: " + e.getMessage());
@@ -108,6 +111,7 @@ public class UserController {
                       "phone": "0123456789",
                       "address": "123 Main St",
                       "avatar": "https://example.com/avatar.jpg",
+                      "birthday": "2000-01-15",
                       "roleId": 2
                     }
                     """))) @Valid @RequestBody CreateUserRequest request) {
@@ -145,6 +149,7 @@ public class UserController {
                       "phone": "0987654321",
                       "address": "456 Updated St",
                       "avatar": "https://example.com/new-avatar.jpg",
+                      "birthday": "1995-06-20",
                       "roleId": 2
                     }
                     """))) @RequestBody CreateUserRequest request) {

@@ -16,6 +16,7 @@ import com.example.phonehub.auth.util.JwtUtil;
 import com.example.phonehub.entity.User;
 import com.example.phonehub.repository.UserRepository;
 import io.jsonwebtoken.ExpiredJwtException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -59,8 +60,8 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                                 // Set new access token in response header for client to pick up
                                 response.setHeader("X-New-Access-Token", newAccessToken);
                                 
-                                // Continue with authentication using new token
-                                UserDetails userDetails = userDetailsService.loadUserByUsername(user.getUsername());
+                                // Continue with authentication using User entity directly (already fetched from DB)
+                                UserDetails userDetails = userDetailsService.createUserDetails(user);
                                 UsernamePasswordAuthenticationToken authentication =
                                         new UsernamePasswordAuthenticationToken(
                                                 userDetails,
@@ -87,16 +88,23 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                     }
                 } else if (jwtUtils.validateJwtToken(jwt)) {
                     // Token is valid, set authentication
-                    String username = jwtUtils.getUsernameFromToken(jwt);
-                    UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-                    UsernamePasswordAuthenticationToken authentication =
-                            new UsernamePasswordAuthenticationToken(
-                                    userDetails,
-                                    null,
-                                    userDetails.getAuthorities()
-                            );
-                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                    // Use userId from token instead of username (more reliable)
+                    try {
+                        Integer userId = jwtUtils.getUserIdFromToken(jwt);
+                        UserDetails userDetails = userDetailsService.loadUserById(userId);
+                        UsernamePasswordAuthenticationToken authentication =
+                                new UsernamePasswordAuthenticationToken(
+                                        userDetails,
+                                        null,
+                                        userDetails.getAuthorities()
+                                );
+                        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                        SecurityContextHolder.getContext().setAuthentication(authentication);
+                    } catch (UsernameNotFoundException e) {
+                        // User not found, but token is valid - might be deleted user
+                        System.out.println("User not found for valid token: " + e.getMessage());
+                        // Don't set authentication, let request continue (might be handled by other filters)
+                    }
                 }
             }
         } catch (Exception e) {

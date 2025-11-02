@@ -57,6 +57,9 @@ public class Product {
     @Size(max = 500, message = "Thumbnail image URL must not exceed 500 characters")
     private String thumbnailImage;
     
+    @Column(name = "quantity", nullable = false)
+    private Integer quantity = 0;
+    
     @Column(name = "is_published", nullable = false)
     private Boolean isPublished = false;
     

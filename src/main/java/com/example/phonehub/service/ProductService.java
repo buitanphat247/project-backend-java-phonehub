@@ -46,6 +46,7 @@ public class ProductService {
         Product p = new Product();
         p.setName(req.getName()); p.setSlug(slug); p.setBrand(req.getBrand()); p.setCategory(category);
         p.setPrice(req.getPrice()); p.setPriceOld(req.getPriceOld()); p.setDiscount(req.getDiscount()); p.setThumbnailImage(req.getThumbnailImage());
+        p.setQuantity(req.getQuantity()!=null?req.getQuantity():0);
         p.setIsPublished(req.getIsPublished()!=null?req.getIsPublished():false);
         p.setPublishedAt(Boolean.TRUE.equals(p.getIsPublished()) ? LocalDateTime.now() : null);
         p.setCreatedBy(admin);
@@ -59,6 +60,7 @@ public class ProductService {
         Category category = categoryRepository.findById(req.getCategoryId()).orElseThrow(() -> new RuntimeException("Category not found: "+req.getCategoryId()));
         p.setName(req.getName()); p.setSlug(slug); p.setBrand(req.getBrand()); p.setCategory(category);
         p.setPrice(req.getPrice()); p.setPriceOld(req.getPriceOld()); p.setDiscount(req.getDiscount()); p.setThumbnailImage(req.getThumbnailImage());
+        if (req.getQuantity()!=null) p.setQuantity(req.getQuantity());
         Boolean publish = req.getIsPublished();
         if (publish!=null){ p.setIsPublished(publish); p.setPublishedAt(publish? (p.getPublishedAt()==null? LocalDateTime.now(): p.getPublishedAt()): null);}        
         return ProductUtils.toDto(productRepository.save(p));

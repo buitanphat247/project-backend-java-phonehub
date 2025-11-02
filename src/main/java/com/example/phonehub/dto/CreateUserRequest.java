@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import java.time.LocalDate;
 
 @Data
 @NoArgsConstructor
@@ -31,6 +32,8 @@ public class CreateUserRequest {
     
     @Size(max = 255, message = "Avatar URL must not exceed 255 characters")
     private String avatar;
+    
+    private LocalDate birthday;
     
     private Integer roleId;
 }

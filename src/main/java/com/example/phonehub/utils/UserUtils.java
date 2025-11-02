@@ -21,6 +21,7 @@ public class UserUtils {
         dto.setPhone(user.getPhone());
         dto.setAddress(user.getAddress());
         dto.setAvatar(user.getAvatar());
+        dto.setBirthday(user.getBirthday());
         dto.setCreatedAt(user.getCreatedAt());
         dto.setUpdatedAt(user.getUpdatedAt());
         
@@ -43,6 +44,7 @@ public class UserUtils {
         user.setPhone(dto.getPhone());
         user.setAddress(dto.getAddress());
         user.setAvatar(dto.getAvatar());
+        user.setBirthday(dto.getBirthday());
         return user;
     }
     

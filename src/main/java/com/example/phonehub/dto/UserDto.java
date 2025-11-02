@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
@@ -31,6 +32,8 @@ public class UserDto {
     
     @Size(max = 255, message = "Avatar URL must not exceed 255 characters")
     private String avatar;
+    
+    private LocalDate birthday;
     
     private RoleDto role;
     private LocalDateTime createdAt;

@@ -67,23 +67,19 @@ public class WebSecurityConfig implements WebMvcConfigurer {
                     auth.requestMatchers("/actuator/**").permitAll();
                     
                     // Dynamic public URLs from @Public annotation
-                    // Group URLs by base path to handle path variables
-                    java.util.Set<String> basePaths = new java.util.HashSet<>();
+                    // Spring Security automatically handles path variables like {id}, {productId}, etc.
+                    // So we only need to add the exact patterns from annotations
+                    java.util.Set<String> processedPatterns = new java.util.HashSet<>();
                     for (String url : publicUrls) {
-                        // Add the exact URL pattern
-                        auth.requestMatchers(url).permitAll();
-                        // Extract base path with wildcard for path variables (e.g., /api/v1/users/** from /api/v1/users/{id})
-                        String basePath = url.replaceAll("/\\{[^}]+\\}", "/**");
-                        if (!basePath.equals(url) && !basePaths.contains(basePath)) {
-                            basePaths.add(basePath);
-                            auth.requestMatchers(basePath).permitAll();
-                        }
-                        // Also add base path without trailing /** if needed
-                        String basePathNoWildcard = url.replaceAll("/\\{[^}]+\\}", "");
-                        if (!basePathNoWildcard.equals(url) && !basePathNoWildcard.equals(basePath) && 
-                            !basePaths.contains(basePathNoWildcard + "/**")) {
-                            basePaths.add(basePathNoWildcard + "/**");
-                            auth.requestMatchers(basePathNoWildcard + "/**").permitAll();
+                        if (url == null || url.isEmpty()) continue;
+                        
+                        // Skip if pattern already contains ** to avoid duplicate processing
+                        if (url.contains("**")) continue;
+                        
+                        // Add the exact URL pattern (Spring handles path variables like {id} automatically)
+                        if (!processedPatterns.contains(url)) {
+                            processedPatterns.add(url);
+                            auth.requestMatchers(url).permitAll();
                         }
                     }
                     

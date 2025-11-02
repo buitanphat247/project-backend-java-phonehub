@@ -93,6 +93,7 @@ public class UserService {
         user.setPhone(request.getPhone());
         user.setAddress(request.getAddress());
         user.setAvatar(request.getAvatar());
+        user.setBirthday(request.getBirthday());
         user.setRole(userRole);
         
         User savedUser = userRepository.save(user);
@@ -148,6 +149,11 @@ public class UserService {
         // Chỉ update avatar nếu được truyền vào
         if (request.getAvatar() != null) {
             user.setAvatar(request.getAvatar().trim().isEmpty() ? null : request.getAvatar());
+        }
+
+        // Chỉ update birthday nếu được truyền vào
+        if (request.getBirthday() != null) {
+            user.setBirthday(request.getBirthday());
         }
 
         // Chỉ update role nếu được truyền vào

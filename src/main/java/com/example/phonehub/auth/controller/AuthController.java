@@ -13,6 +13,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.*;
+import com.example.phonehub.dto.ChangeEmailRequest;
+import com.example.phonehub.service.EmailVerificationService;
+import jakarta.validation.Valid;
 
 import java.util.Map;
 
@@ -24,6 +27,9 @@ public class AuthController {
     
     @Autowired
     private AuthService authService;
+
+    @Autowired
+    private EmailVerificationService emailVerificationService;
 
     @Operation(summary = "🔐 Đăng nhập", description = "Đăng nhập và nhận JWT token")
     @PostMapping("/signin")
@@ -170,6 +176,34 @@ public class AuthController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(ApiResponse.error("Lỗi đăng nhập Google: " + e.getMessage()));
+        }
+    }
+
+    @Operation(summary = "📧 Yêu cầu đổi email", description = "Sinh token xác minh và gửi email tới địa chỉ mới")
+    @PostMapping("/change-email-request")
+    public ResponseEntity<ApiResponse<Boolean>> changeEmailRequest(@Valid @RequestBody ChangeEmailRequest request) {
+        try {
+            emailVerificationService.createEmailVerificationToken(request);
+            return ResponseEntity.ok(ApiResponse.success("Đã gửi email xác minh đến địa chỉ mới", true));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Lỗi tạo yêu cầu đổi email: " + e.getMessage()));
+        }
+    }
+
+    @Operation(summary = "✅ Xác minh đổi email", description = "Xác thực token và cập nhật email người dùng")
+    @GetMapping("/verify-email-change")
+    public ResponseEntity<ApiResponse<Boolean>> verifyEmailChange(@RequestParam("token") String token) {
+        try {
+            emailVerificationService.verifyEmailToken(token);
+            return ResponseEntity.ok(ApiResponse.success("Xác minh email thành công", true));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error("Invalid or expired token", 400));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Lỗi xác minh email: " + e.getMessage()));
         }
     }
 }

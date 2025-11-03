@@ -55,6 +55,16 @@ public class User {
     @Column(name = "birthday")
     private LocalDate birthday;
     
+    @Column(name = "points", nullable = false)
+    private Integer points = 0;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "rank_id")
+    private UserRank rank;
+    
+    @Column(name = "rank_id", insertable = false, updatable = false)
+    private Integer rankId;
+    
     @Column(name = "refresh_token", length = 255)
     @Size(max = 255, message = "Refresh token must not exceed 255 characters")
     private String refreshToken;
@@ -62,6 +72,9 @@ public class User {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "role_id", nullable = false)
     private Role role;
+    
+    @Column(name = "role_id", insertable = false, updatable = false)
+    private Integer roleId;
     
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

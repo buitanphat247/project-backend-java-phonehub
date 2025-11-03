@@ -35,7 +35,14 @@ public class UserDto {
     
     private LocalDate birthday;
     
-    private RoleDto role;
+    private Integer points;
+    
+    private Integer roleId;  // 🔹 ID của role (luôn có)
+    private Integer rankId;  // 🔹 ID của rank (luôn có)
+    
+    private RoleDto role;  // 🔹 Full object role (chỉ có khi lấy chi tiết user theo ID)
+    private UserRankDto rank;  // 🔹 Full object rank (chỉ có khi lấy chi tiết user theo ID)
+    
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

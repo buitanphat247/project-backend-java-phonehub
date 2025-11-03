@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,36 +27,79 @@ public class UserService {
 
     @Autowired
     private RoleRepository roleRepository;
+    
+    @Autowired
+    private UserRankService rankService;
 
-    // Lấy users với phân trang
+    // Helper method: Tự động cập nhật rank của user dựa trên điểm số
+    private void updateUserRank(User user) {
+        if (user == null) return;
+        
+        Integer points = user.getPoints() != null ? user.getPoints() : 0;
+        rankService.getRankEntityByPoints(points).ifPresent(user::setRank);
+    }
+    
+    // Helper method: Đảm bảo user có rank (nếu null thì tự động set dựa trên points)
+    private void ensureUserHasRank(User user) {
+        if (user == null) return;
+        
+        // Nếu user chưa có rank hoặc rank bị null, tự động set rank dựa trên points
+        if (user.getRank() == null) {
+            updateUserRank(user);
+            // Nếu user đã có ID (đã persist), lưu lại để persist rank vào DB
+            if (user.getId() != null) {
+                userRepository.save(user);
+            }
+        }
+    }
+    
+    // Helper method: Convert User to DTO và đảm bảo có rank (full object - cho chi tiết)
+    private UserDto toDtoWithRank(User user) {
+        if (user == null) return null;
+        
+        // Đảm bảo user có rank trước khi convert
+        ensureUserHasRank(user);
+        
+        // Dùng toDtoFull để trả về full role và rank objects
+        return UserUtils.toDtoFull(user);
+    }
+
+    // Lấy users với phân trang - chỉ thông tin cơ bản, chỉ có roleId và rankId
     public Page<UserDto> getAllUsers(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<User> userPage = userRepository.findAll(pageable);
-        return UserUtils.toDtoPage(userPage);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "id"));
+        // Dùng findAllBasic để không load role và rank (tránh N+1 query, tối ưu performance)
+        Page<User> userPage = userRepository.findAllBasic(pageable);
+        
+        // Dùng toDtoPageBasic để chỉ convert roleId và rankId (không có full objects)
+        return UserUtils.toDtoPageBasic(userPage);
     }
 
-    // Lấy user theo ID
+    // Lấy user theo ID (kèm full role và rank objects)
     public Optional<UserDto> getUserById(Integer id) {
-        Optional<User> user = userRepository.findById(id);
-        return user.map(UserUtils::toDto);
+        Optional<User> user = userRepository.findById(id); // Đã có @EntityGraph để load role và rank
+        return user.map(this::toDtoWithRank);
     }
 
-    // Lấy user theo username
+    // Lấy user theo username (kèm rank)
     public Optional<UserDto> getUserByUsername(String username) {
         Optional<User> user = userRepository.findByUsername(username);
-        return user.map(UserUtils::toDto);
+        return user.map(this::toDtoWithRank);
     }
 
-    // Lấy user theo email
+    // Lấy user theo email (kèm rank)
     public Optional<UserDto> getUserByEmail(String email) {
         Optional<User> user = userRepository.findByEmail(email);
-        return user.map(UserUtils::toDto);
+        return user.map(this::toDtoWithRank);
     }
 
-    // Tìm kiếm user theo username hoặc email với phân trang
+    // Tìm kiếm user theo username hoặc email với phân trang (kèm rank)
     public Page<UserDto> searchByKeyword(String keyword, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<User> userPage = userRepository.searchByUsernameOrEmail(keyword, pageable);
+        
+        // Đảm bảo tất cả users đều có rank
+        userPage.getContent().forEach(this::ensureUserHasRank);
+        
         return UserUtils.toDtoPage(userPage);
     }
 
@@ -96,8 +140,12 @@ public class UserService {
         user.setBirthday(request.getBirthday());
         user.setRole(userRole);
         
+        // Tự động set rank dựa trên điểm số (mặc định 0)
+        updateUserRank(user);
+        
         User savedUser = userRepository.save(user);
-        return UserUtils.toDto(savedUser);
+        // Đảm bảo rank được load sau khi save
+        return toDtoWithRank(savedUser);
     }
 
     // Cập nhật user
@@ -163,8 +211,12 @@ public class UserService {
             user.setRole(role);
         }
         
+        // Tự động cập nhật rank dựa trên điểm số hiện tại của user (đảm bảo rank luôn đúng)
+        updateUserRank(user);
+        
         User updatedUser = userRepository.save(user);
-        return UserUtils.toDto(updatedUser);
+        // Đảm bảo rank được load sau khi save
+        return toDtoWithRank(updatedUser);
     }
 
     // Xóa user
@@ -191,5 +243,38 @@ public class UserService {
             return PasswordUtils.verifyPassword(password, user.get().getPassword());
         }
         return false;
+    }
+    
+    // Cập nhật điểm số của user (tự động cập nhật rank)
+    public UserDto updateUserPoints(Integer userId, Integer points) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+        
+        if (points == null || points < 0) {
+            throw new RuntimeException("Points must be a non-negative number");
+        }
+        
+        user.setPoints(points);
+        updateUserRank(user);
+        
+        User updatedUser = userRepository.save(user);
+        return toDtoWithRank(updatedUser);
+    }
+    
+    // Cộng điểm cho user (tự động cập nhật rank)
+    public UserDto addPointsToUser(Integer userId, Integer pointsToAdd) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+        
+        if (pointsToAdd == null || pointsToAdd < 0) {
+            throw new RuntimeException("Points to add must be a non-negative number");
+        }
+        
+        Integer currentPoints = user.getPoints() != null ? user.getPoints() : 0;
+        user.setPoints(currentPoints + pointsToAdd);
+        updateUserRank(user);
+        
+        User updatedUser = userRepository.save(user);
+        return toDtoWithRank(updatedUser);
     }
 }

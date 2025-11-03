@@ -4,16 +4,23 @@ import com.example.phonehub.auth.util.JwtUtil;
 import com.example.phonehub.dto.AuthResponse;
 import com.example.phonehub.entity.Role;
 import com.example.phonehub.entity.User;
+import com.example.phonehub.dto.UploadResponse;
 import com.example.phonehub.repository.RoleRepository;
 import com.example.phonehub.repository.UserRepository;
+import com.example.phonehub.service.UploadService;
 import com.example.phonehub.utils.PasswordUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
+import java.text.Normalizer;
 
 @Service
 public class AuthService {
@@ -26,6 +33,12 @@ public class AuthService {
 
     @Autowired
     private JwtUtil jwtUtils;
+
+    @Value("${google.client-id:}")
+    private String googleClientId;
+
+    @Autowired
+    private UploadService uploadService;
 
     /**
      * Đăng nhập user và tạo JWT tokens
@@ -147,6 +160,108 @@ public class AuthService {
         data.put("roleName", user.getRole().getName());
 
         return data;
+    }
+
+    /**
+     * Đăng nhập bằng Google id_token: xác minh, provision user, phát hành JWT
+     */
+    @Transactional
+    @SuppressWarnings("unchecked")
+    public Map<String, String> googleSignin(String idToken) {
+        // Gọi endpoint tokeninfo của Google để xác minh chữ ký và payload của id_token
+        // Lưu ý: Có thể thay bằng GoogleIdTokenVerifier để không phụ thuộc HTTP tokeninfo
+        String url = "https://oauth2.googleapis.com/tokeninfo?id_token=" + idToken;
+        RestTemplate rest = new RestTemplate();
+        Map<String, Object> tokenInfo;
+        try {
+            tokenInfo = rest.getForObject(url, Map.class);
+        } catch (RestClientException e) {
+            throw new BadCredentialsException("Không xác thực được id_token");
+        }
+
+        // Bắt buộc phải có aud (clientId) và email để định danh người dùng
+        if (tokenInfo == null || tokenInfo.get("aud") == null || tokenInfo.get("email") == null) {
+            throw new BadCredentialsException("id_token không hợp lệ");
+        }
+
+        // Kiểm tra aud khớp clientId cấu hình của dự án nhằm ngăn id_token phát hành cho ứng dụng khác
+        if (googleClientId != null && !googleClientId.isBlank()) {
+            String aud = String.valueOf(tokenInfo.get("aud"));
+            if (!googleClientId.equals(aud)) {
+                throw new BadCredentialsException("aud không khớp");
+            }
+        }
+
+        // Một số id_token có cờ email_verified; nếu có và false thì từ chối
+        Object emailVerified = tokenInfo.get("email_verified");
+        if (emailVerified != null && !Boolean.parseBoolean(String.valueOf(emailVerified))) {
+            throw new BadCredentialsException("Email chưa xác minh");
+        }
+
+        // Trích xuất các trường cần thiết từ id_token
+        String email = String.valueOf(tokenInfo.get("email"));
+        String sub = String.valueOf(tokenInfo.get("sub"));
+        String picture = String.valueOf(tokenInfo.getOrDefault("picture", ""));
+        String name = String.valueOf(tokenInfo.getOrDefault("name", ""));
+
+        // Tìm người dùng theo email; nếu chưa có thì provision user mới với role mặc định (id=3)
+        User user = userRepository.findByEmail(email).orElseGet(() -> {
+            Role defaultRole = roleRepository.findById(3)
+                    .orElseThrow(() -> new RuntimeException("Default role with ID 3 not found"));
+            User u = new User();
+            String baseUsername = name == null || name.isBlank() ? ("gg_" + sub) : normalizeUsername(name);
+            String finalUsername = baseUsername;
+            if (userRepository.existsByUsername(finalUsername)) {
+                String suffix = sub != null && sub.length() > 6 ? sub.substring(sub.length() - 6) : UUID.randomUUID().toString().substring(0, 6);
+                finalUsername = baseUsername + "_" + suffix;
+            }
+            u.setUsername(finalUsername);
+            u.setPassword(PasswordUtils.encodeMD5(UUID.randomUUID().toString()));
+            u.setEmail(email);
+            if (picture != null && !picture.isBlank()) {
+                try {
+                    UploadResponse up = uploadService.uploadFromUrl(picture);
+                    u.setAvatar(up.getFileUrl());
+                } catch (Exception ignored) { u.setAvatar(picture); }
+            }
+            u.setRole(defaultRole);
+            return userRepository.save(u);
+        });
+
+        // Đồng bộ avatar nếu user cũ chưa có ảnh
+        if ((user.getAvatar() == null || user.getAvatar().isBlank()) && picture != null && !picture.isBlank()) {
+            try {
+                UploadResponse up = uploadService.uploadFromUrl(picture);
+                user.setAvatar(up.getFileUrl());
+                userRepository.save(user);
+            } catch (Exception ignored) { }
+        }
+
+        // Phát hành accessToken + refreshToken theo cơ chế JWT nội bộ và lưu refreshToken vào DB
+        String token = jwtUtils.generateToken(user);
+        String refreshToken = jwtUtils.generateRefreshToken(user.getUsername());
+        user.setRefreshToken(refreshToken);
+        userRepository.save(user);
+
+        // Chuẩn hóa dữ liệu phản hồi theo format các API đăng nhập hiện có
+        Map<String, String> data = new HashMap<>();
+        data.put("token", token);
+        data.put("type", "Bearer");
+        data.put("username", user.getUsername());
+        data.put("userId", String.valueOf(user.getId()));
+        data.put("email", user.getEmail());
+        data.put("roleId", String.valueOf(user.getRole().getId()));
+        data.put("roleName", user.getRole().getName());
+        return data;
+    }
+
+    // Chuẩn hóa tên thành username: bỏ dấu, chữ thường, bỏ khoảng trắng/ký tự không [a-z0-9_]
+    private String normalizeUsername(String input) {
+        String noDiacritics = Normalizer.normalize(input, Normalizer.Form.NFD)
+                .replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
+        String lowered = noDiacritics.toLowerCase().replaceAll("[\\s]+", "");
+        String cleaned = lowered.replaceAll("[^a-z0-9_]", "");
+        return cleaned.isBlank() ? "user" + UUID.randomUUID().toString().substring(0, 6) : cleaned;
     }
 
 }

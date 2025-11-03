@@ -98,14 +98,45 @@ public class UploadService {
                 if (responseBody == null || responseBody.trim().isEmpty()) {
                     throw new RuntimeException("Empty response from Uploadcare");
                 }
-                
-                // Clean response body from control characters
-                responseBody = responseBody.replaceAll("[\\x00-\\x1F\\x7F]", "");
-                
-                JsonNode jsonResponse = objectMapper.readTree(responseBody);
-                String fileId = jsonResponse.get("file_id").asText();
 
-                // Build response
+                responseBody = responseBody.replaceAll("[\\x00-\\x1F\\x7F]", "");
+                JsonNode jsonResponse = objectMapper.readTree(responseBody);
+
+                // from_url trả về token, cần poll from_url/status để lấy file_id
+                String token = jsonResponse.has("token") ? jsonResponse.get("token").asText() : null;
+                if (token == null || token.isBlank()) {
+                    throw new RuntimeException("Uploadcare did not return token");
+                }
+
+                String statusUrl = "https://upload.uploadcare.com/from_url/status/?token=" + token;
+                String fileId = null;
+                int attempts = 0;
+                while (attempts < 20) { // tối đa ~10s (nếu sleep 500ms)
+                    ResponseEntity<String> statusResp = restTemplate.getForEntity(statusUrl, String.class);
+                    if (statusResp.getStatusCode() != HttpStatus.OK || statusResp.getBody() == null) {
+                        attempts++;
+                        Thread.sleep(500);
+                        continue;
+                    }
+                    String statusBody = statusResp.getBody().replaceAll("[\\x00-\\x1F\\x7F]", "");
+                    JsonNode statusJson = objectMapper.readTree(statusBody);
+                    String status = statusJson.has("status") ? statusJson.get("status").asText() : "";
+                    if ("success".equalsIgnoreCase(status) && statusJson.has("file_id")) {
+                        fileId = statusJson.get("file_id").asText();
+                        break;
+                    }
+                    if ("error".equalsIgnoreCase(status)) {
+                        String err = statusJson.has("error") ? statusJson.get("error").asText() : "unknown";
+                        throw new RuntimeException("Uploadcare from_url error: " + err);
+                    }
+                    attempts++;
+                    Thread.sleep(500);
+                }
+
+                if (fileId == null) {
+                    throw new RuntimeException("Timeout waiting for Uploadcare file_id");
+                }
+
                 UploadResponse uploadResponse = new UploadResponse();
                 uploadResponse.setFileId(fileId);
                 uploadResponse.setFileName("uploaded_file");

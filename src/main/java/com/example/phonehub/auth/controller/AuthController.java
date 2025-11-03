@@ -147,4 +147,29 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
+
+    @Operation(summary = "🔑 Đăng nhập Google", description = "Nhận id_token (chuỗi) từ frontend, xác thực và phát hành JWT")
+    @PostMapping("/signin/google")
+    public ResponseEntity<ApiResponse<Map<String, String>>> googleSignin(@RequestBody String idToken) {
+        try {
+            if (idToken != null) {
+                idToken = idToken.trim();
+                if (idToken.startsWith("\"") && idToken.endsWith("\"")) {
+                    idToken = idToken.substring(1, idToken.length() - 1);
+                }
+            }
+            if (idToken == null || idToken.isBlank()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(ApiResponse.badRequest("Thiếu idToken"));
+            }
+            Map<String, String> data = authService.googleSignin(idToken);
+            return ResponseEntity.ok(ApiResponse.success("Đăng nhập Google thành công", data));
+        } catch (BadCredentialsException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.error("id_token không hợp lệ", 401));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Lỗi đăng nhập Google: " + e.getMessage()));
+        }
+    }
 }

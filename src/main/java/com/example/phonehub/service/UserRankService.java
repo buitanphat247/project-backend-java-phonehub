@@ -166,7 +166,6 @@ public class UserRankService {
             throw new RuntimeException("Rank not found");
         }
         
-        // TODO: Kiểm tra xem có user nào đang sử dụng rank này không
         // Nếu có, không cho xóa hoặc set rank của họ về null
         
         rankRepository.deleteById(id);

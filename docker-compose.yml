@@ -1,0 +1,36 @@
+services:
+  db:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      - MYSQL_DATABASE=phonehub
+      - MYSQL_USER=phonehub
+      - MYSQL_PASSWORD=phonehub
+      - MYSQL_ROOT_PASSWORD=phonehub
+    # Không publish cổng MySQL ra host để tránh xung đột 3306
+    # Nếu cần truy cập từ host: bật dòng dưới và đổi sang 3307:3306
+    ports:
+      - "3307:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./db/init:/docker-entrypoint-initdb.d
+  app:
+    build: .
+    depends_on:
+      - db
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/phonehub?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh&characterEncoding=UTF-8
+      - SPRING_DATASOURCE_USERNAME=phonehub
+      - SPRING_DATASOURCE_PASSWORD=phonehub
+      - UPLOADCARE_PUBLIC_KEY=${UPLOADCARE_PUBLIC_KEY}
+      - UPLOADCARE_SECRET_KEY=${UPLOADCARE_SECRET_KEY}
+      - UPLOADCARE_CDN_BASE=${UPLOADCARE_CDN_BASE}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - SERVER_PORT=8080
+    ports:
+      - "8080:8080"
+
+volumes:
+  db_data:
+
+

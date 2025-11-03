@@ -1,0 +1,26 @@
+# Maven
+target/
+**/*.iml
+.idea/
+.mvn/
+
+# Git
+.git
+.gitignore
+
+# OS/Editors
+.DS_Store
+*.log
+
+# Node leftovers (if any)
+node_modules/
+
+# Uploads/temp
+**/tmp/
+**/temp/
+
+# Build cache
+.cache/
+
+
+

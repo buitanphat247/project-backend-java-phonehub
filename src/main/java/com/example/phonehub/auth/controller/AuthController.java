@@ -17,6 +17,7 @@ import com.example.phonehub.dto.ChangeEmailRequest;
 import com.example.phonehub.service.EmailVerificationService;
 import jakarta.validation.Valid;
 
+import java.time.LocalDate;
 import java.util.Map;
 
 @RestController
@@ -84,7 +85,10 @@ public class AuthController {
                         {
                           "username": "newuser",
                           "password": "password123",
-                          "email": "newuser@example.com"
+                          "email": "newuser@example.com",
+                          "phone": "0123456789",
+                          "address": "123 Main Street",
+                          "birthday": "2000-11-01"
                         }
                         """)
                 )
@@ -94,14 +98,28 @@ public class AuthController {
             String username = credentials.get("username");
             String password = credentials.get("password");
             String email = credentials.get("email");
+            String phone = credentials.get("phone");
+            String address = credentials.get("address");
+            String birthdayStr = credentials.get("birthday");
 
             if (username == null || password == null) {
                 ApiResponse<AuthResponse> response = ApiResponse.badRequest("Username và password không được để trống");
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
             }
 
+            // Parse birthday từ string (format: "2000-11-01")
+            LocalDate birthday = null;
+            if (birthdayStr != null && !birthdayStr.isEmpty()) {
+                try {
+                    birthday = LocalDate.parse(birthdayStr);
+                } catch (Exception e) {
+                    ApiResponse<AuthResponse> response = ApiResponse.badRequest("Định dạng ngày sinh không hợp lệ. Vui lòng sử dụng định dạng yyyy-MM-dd");
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+                }
+            }
+
             // Call AuthService to signup
-            AuthResponse authResponse = authService.signup(username, password, email);
+            AuthResponse authResponse = authService.signup(username, password, email, phone, address, birthday);
             
             ApiResponse<AuthResponse> response = ApiResponse.success("Đăng ký thành công", authResponse);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);

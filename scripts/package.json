@@ -1,0 +1,21 @@
+{
+  "name": "phonehub-postman-generator",
+  "version": "1.0.0",
+  "description": "Generate Postman collection from Swagger/OpenAPI",
+  "main": "generate-postman.js",
+  "scripts": {
+    "generate": "node generate-postman.js",
+    "generate:dev": "node generate-postman.js --url http://localhost:8080",
+    "generate:prod": "node generate-postman.js --url https://api.phonehub.com"
+  },
+  "keywords": [
+    "postman",
+    "swagger",
+    "openapi",
+    "api",
+    "collection"
+  ],
+  "author": "",
+  "license": "MIT"
+}
+

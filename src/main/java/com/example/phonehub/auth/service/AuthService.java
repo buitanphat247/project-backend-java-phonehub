@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -80,7 +81,7 @@ public class AuthService {
      * Đăng ký user mới
      */
     @Transactional
-    public AuthResponse signup(String username, String password, String email) {
+    public AuthResponse signup(String username, String password, String email, String phone, String address, LocalDate birthday) {
         // Check if username already exists
         if (userRepository.existsByUsername(username)) {
             throw new RuntimeException("Username đã tồn tại");
@@ -102,6 +103,9 @@ public class AuthService {
         newUser.setUsername(username);
         newUser.setPassword(PasswordUtils.encodeMD5(password)); // Encode password MD5
         newUser.setEmail(email);
+        newUser.setPhone(phone);
+        newUser.setAddress(address);
+        newUser.setBirthday(birthday);
         newUser.setRole(defaultRole);
 
         // Save user

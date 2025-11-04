@@ -59,6 +59,8 @@ public class WebSecurityConfig implements WebMvcConfigurer {
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> {
+                    // Allow OPTIONS requests for CORS preflight
+                    auth.requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll();
                     // Always public endpoints
                     auth.requestMatchers("/api/v1/auth/**").permitAll();
                     auth.requestMatchers("/swagger-ui/**", "/swagger-ui.html").permitAll();

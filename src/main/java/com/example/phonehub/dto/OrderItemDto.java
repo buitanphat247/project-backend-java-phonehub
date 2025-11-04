@@ -1,0 +1,24 @@
+package com.example.phonehub.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class OrderItemDto {
+    private Integer id;
+    private Integer productId;
+    private String productName;
+    private Integer quantity;
+    private BigDecimal unitPrice;
+    private BigDecimal discount; // percentage
+    private BigDecimal subtotal;
+    private LocalDateTime createdAt;
+}
+
+

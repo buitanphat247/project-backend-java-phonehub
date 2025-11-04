@@ -5,6 +5,7 @@ import com.example.phonehub.dto.UpdateUserRankRequest;
 import com.example.phonehub.dto.UserRankDto;
 import com.example.phonehub.entity.UserRank;
 import com.example.phonehub.repository.UserRankRepository;
+import com.example.phonehub.service.redis_cache.UserRankCacheService;
 import com.example.phonehub.utils.UserRankUtils;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,35 +22,64 @@ public class UserRankService {
     @Autowired
     private UserRankRepository rankRepository;
     
-    // Lấy tất cả ranks
+    @Autowired
+    private UserRankCacheService rankCacheService;
+    
     public List<UserRankDto> getAllRanks() {
-        return UserRankUtils.toDtoList(rankRepository.findAllOrderByMinPointsAsc());
+        List<UserRankDto> cachedRanks = rankCacheService.getAllRanksFromCache();
+        if (cachedRanks != null && !cachedRanks.isEmpty()) {
+            return cachedRanks;
+        }
+        
+        List<UserRankDto> ranks = UserRankUtils.toDtoList(rankRepository.findAllOrderByMinPointsAsc());
+        rankCacheService.saveAllRanksToCache(ranks);
+        return ranks;
     }
     
-    // Lấy rank theo ID
     public Optional<UserRankDto> getById(Integer id) {
-        return rankRepository.findById(id).map(UserRankUtils::toDto);
+        if (id == null) return Optional.empty();
+        
+        UserRankDto cachedRank = rankCacheService.getRankFromCacheById(id);
+        return rankCacheService.getRankWithCacheStrategy(
+            cachedRank,
+            () -> rankRepository.findById(id)
+        );
     }
     
-    // Lấy rank theo tên
     public Optional<UserRankDto> getByName(String name) {
-        return rankRepository.findByName(name).map(UserRankUtils::toDto);
+        if (name == null || name.trim().isEmpty()) return Optional.empty();
+        
+        UserRankDto cachedRank = rankCacheService.getRankFromCacheByName(name);
+        return rankCacheService.getRankWithCacheStrategy(
+            cachedRank,
+            () -> rankRepository.findByName(name)
+        );
     }
     
-    // Tìm rank phù hợp dựa trên điểm số
     public Optional<UserRankDto> getRankByPoints(Integer points) {
-        return rankRepository.findRankByPoints(points != null ? points : 0)
-                .map(UserRankUtils::toDto);
+        Integer validPoints = points != null ? points : 0;
+        
+        UserRankDto cachedRank = rankCacheService.getRankFromCacheByPoints(validPoints);
+        if (cachedRank != null) {
+            return Optional.of(cachedRank);
+        }
+        
+        Optional<UserRank> rankFromDb = rankRepository.findRankByPoints(validPoints);
+        Optional<UserRankDto> rankDto = rankFromDb.map(UserRankUtils::toDto);
+        
+        rankDto.ifPresent(rank -> {
+            rankCacheService.saveRankToCache(rank);
+            rankCacheService.saveRankByPointsToCache(validPoints, rank);
+        });
+        
+        return rankDto;
     }
     
-    // Lấy UserRank entity (dùng cho internal)
     public Optional<UserRank> getRankEntityByPoints(Integer points) {
         return rankRepository.findRankByPoints(points != null ? points : 0);
     }
     
-    // Tạo rank mới
     public UserRankDto create(CreateUserRankRequest req) {
-        // Kiểm tra tên rank đã tồn tại chưa
         if (rankRepository.existsByName(req.getName())) {
             UserRank existingRank = rankRepository.findByName(req.getName()).orElse(null);
             String errorMsg = String.format(
@@ -62,7 +92,6 @@ public class UserRankService {
             throw new RuntimeException(errorMsg);
         }
         
-        // Kiểm tra minPoints <= maxPoints
         if (req.getMinPoints() > req.getMaxPoints()) {
             throw new RuntimeException(
                 String.format("Min points (%d) không thể lớn hơn max points (%d)", 
@@ -70,10 +99,8 @@ public class UserRankService {
             );
         }
         
-        // Kiểm tra overlap với các rank khác
         List<UserRank> existingRanks = rankRepository.findAll();
         for (UserRank existing : existingRanks) {
-            // Kiểm tra xem có khoảng điểm bị overlap không
             boolean hasOverlap = !(req.getMaxPoints() < existing.getMinPoints() || 
                                   req.getMinPoints() > existing.getMaxPoints());
             if (hasOverlap) {
@@ -88,24 +115,26 @@ public class UserRankService {
             }
         }
         
-        // Tạo rank mới
         UserRank rank = new UserRank();
         rank.setName(req.getName());
         rank.setMinPoints(req.getMinPoints());
         rank.setMaxPoints(req.getMaxPoints());
         rank.setDiscount(req.getDiscount() != null ? req.getDiscount() : BigDecimal.ZERO);
         
-        return UserRankUtils.toDto(rankRepository.save(rank));
+        UserRankDto savedDto = UserRankUtils.toDto(rankRepository.save(rank));
+        rankCacheService.saveRankToCache(savedDto);
+        rankCacheService.invalidateAllRankCache();
+        
+        return savedDto;
     }
     
-    // Cập nhật rank
     public UserRankDto update(Integer id, UpdateUserRankRequest req) {
         UserRank rank = rankRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Rank not found"));
         
-        // Cập nhật name (nếu có)
+        String oldName = rank.getName();
+        
         if (req.getName() != null && !req.getName().trim().isEmpty()) {
-            // Kiểm tra tên rank mới có trùng với rank khác không (nếu đổi tên)
             if (!rank.getName().equals(req.getName()) && rankRepository.existsByName(req.getName())) {
                 UserRank existingRank = rankRepository.findByName(req.getName()).orElse(null);
                 String errorMsg = String.format(
@@ -120,16 +149,13 @@ public class UserRankService {
             rank.setName(req.getName());
         }
         
-        // Cập nhật minPoints và maxPoints (nếu có)
         Integer newMinPoints = req.getMinPoints() != null ? req.getMinPoints() : rank.getMinPoints();
         Integer newMaxPoints = req.getMaxPoints() != null ? req.getMaxPoints() : rank.getMaxPoints();
         
-        // Kiểm tra minPoints <= maxPoints
         if (newMinPoints > newMaxPoints) {
             throw new RuntimeException("Min points (" + newMinPoints + ") cannot be greater than max points (" + newMaxPoints + ")");
         }
         
-        // Kiểm tra overlap với các rank khác (trừ rank hiện tại) - chỉ khi có thay đổi min/max
         if (req.getMinPoints() != null || req.getMaxPoints() != null) {
             List<UserRank> existingRanks = rankRepository.findAll();
             for (UserRank existing : existingRanks) {
@@ -152,23 +178,29 @@ public class UserRankService {
             rank.setMaxPoints(newMaxPoints);
         }
         
-        // Cập nhật discount (nếu có)
         if (req.getDiscount() != null) {
             rank.setDiscount(req.getDiscount());
         }
         
-        return UserRankUtils.toDto(rankRepository.save(rank));
+        UserRankDto updatedDto = UserRankUtils.toDto(rankRepository.save(rank));
+        rankCacheService.removeRankFromCache(id, oldName);
+        rankCacheService.saveRankToCache(updatedDto);
+        rankCacheService.invalidateAllRankCache();
+        
+        return updatedDto;
     }
     
-    // Xóa rank
     public void delete(Integer id) {
-        if (!rankRepository.existsById(id)) {
+        Optional<UserRank> rankOpt = rankRepository.findById(id);
+        if (rankOpt.isEmpty()) {
             throw new RuntimeException("Rank not found");
         }
         
-        // Nếu có, không cho xóa hoặc set rank của họ về null
+        UserRank rank = rankOpt.get();
+        String rankName = rank.getName();
         
         rankRepository.deleteById(id);
+        rankCacheService.removeRankFromCache(id, rankName);
     }
 }
 

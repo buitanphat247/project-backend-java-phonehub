@@ -32,10 +32,13 @@ public class OrderUtils {
         dto.setId(order.getId());
         dto.setUserId(order.getUser() != null ? order.getUser().getId() : null);
         dto.setUsername(order.getUser() != null ? order.getUser().getUsername() : null);
+        dto.setBuyerName(order.getBuyerName());
+        dto.setBuyerEmail(order.getBuyerEmail());
+        dto.setBuyerPhone(order.getBuyerPhone());
+        dto.setBuyerAddress(order.getBuyerAddress());
         dto.setTotalPrice(order.getTotalPrice());
         dto.setPaymentMethod(order.getPaymentMethod());
         dto.setStatus(order.getStatus());
-        dto.setNote(order.getNote());
         dto.setCreatedAt(order.getCreatedAt());
         dto.setUpdatedAt(order.getUpdatedAt());
         if (order.getItems() != null) {

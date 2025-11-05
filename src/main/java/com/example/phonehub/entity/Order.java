@@ -26,23 +26,31 @@ public class Order {
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = true)
     private User user;
+
+    @Column(name = "buyer_name", length = 100, nullable = false)
+    @NotBlank
+    private String buyerName;
+
+    @Column(name = "buyer_email", length = 100)
+    private String buyerEmail;
+
+    @Column(name = "buyer_phone", length = 20)
+    private String buyerPhone;
+
+    @Column(name = "buyer_address", length = 255)
+    private String buyerAddress;
 
     @Column(name = "total_price", precision = 15, scale = 2, nullable = false)
     @NotNull
     private BigDecimal totalPrice;
 
     @Column(name = "payment_method", length = 50)
-    @NotBlank
-    private String paymentMethod; // COD, BANKING, ...
+    private String paymentMethod = "COD";
 
     @Column(name = "status", length = 20)
-    @NotBlank
-    private String status; // success, failed
-
-    @Column(name = "note", length = 255)
-    private String note;
+    private String status = "success";
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<OrderItem> items = new ArrayList<>();

@@ -47,14 +47,20 @@ public class OrderService {
             throw new RuntimeException("Order must contain at least one item");
         }
 
-        User user = userRepository.findById(req.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found: " + req.getUserId()));
-
         Order order = new Order();
-        order.setUser(user);
-        order.setPaymentMethod(req.getPaymentMethod());
+        
+        if (req.getUserId() != null) {
+            User user = userRepository.findById(req.getUserId())
+                    .orElseThrow(() -> new RuntimeException("User not found: " + req.getUserId()));
+            order.setUser(user);
+        }
+
+        order.setBuyerName(req.getBuyerName());
+        order.setBuyerEmail(req.getBuyerEmail());
+        order.setBuyerPhone(req.getBuyerPhone());
+        order.setBuyerAddress(req.getBuyerAddress());
+        order.setPaymentMethod(req.getPaymentMethod() != null ? req.getPaymentMethod() : "COD");
         order.setStatus("success");
-        order.setNote(req.getNote());
         order.setTotalPrice(BigDecimal.ZERO);
 
         List<OrderItem> items = new ArrayList<>();

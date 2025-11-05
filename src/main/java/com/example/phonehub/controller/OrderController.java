@@ -68,8 +68,11 @@ public class OrderController {
                             examples = @ExampleObject(value = """
                             {
                               "userId": 1,
+                              "buyerName": "Nguyễn Văn A",
+                              "buyerEmail": "nguyenvana@example.com",
+                              "buyerPhone": "0912345678",
+                              "buyerAddress": "123 Đường ABC, Quận XYZ, TP.HCM",
                               "paymentMethod": "COD",
-                              "note": "Giao giờ hành chính",
                               "items": [
                                 { "productId": 1, "quantity": 2 },
                                 { "productId": 3, "quantity": 1 }

@@ -13,15 +13,23 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreateOrderRequest {
-    @NotNull
     private Integer userId;
 
     @NotBlank
-    @Size(max = 50)
-    private String paymentMethod; // COD, BANKING, ...
+    @Size(max = 100)
+    private String buyerName;
+
+    @Size(max = 100)
+    private String buyerEmail;
+
+    @Size(max = 20)
+    private String buyerPhone;
 
     @Size(max = 255)
-    private String note;
+    private String buyerAddress;
+
+    @Size(max = 50)
+    private String paymentMethod = "COD";
 
     @NotNull
     private List<CreateOrderItemRequest> items;

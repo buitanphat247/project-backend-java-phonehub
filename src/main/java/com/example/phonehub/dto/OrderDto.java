@@ -15,10 +15,13 @@ public class OrderDto {
     private Integer id;
     private Integer userId;
     private String username;
+    private String buyerName;
+    private String buyerEmail;
+    private String buyerPhone;
+    private String buyerAddress;
     private BigDecimal totalPrice;
     private String paymentMethod;
     private String status;
-    private String note;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<OrderItemDto> items;

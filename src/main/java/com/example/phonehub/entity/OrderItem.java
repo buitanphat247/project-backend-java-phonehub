@@ -37,13 +37,7 @@ public class OrderItem {
     @NotNull
     private BigDecimal unitPrice;
 
-    @Column(name = "discount", precision = 5, scale = 2, nullable = false)
-    @NotNull
-    private BigDecimal discount; // percentage 0.00 - 100.00
-
-    @Column(name = "subtotal", precision = 15, scale = 2, nullable = false)
-    @NotNull
-    private BigDecimal subtotal;
+    // Bỏ discount và subtotal theo schema mới
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

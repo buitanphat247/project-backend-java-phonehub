@@ -1,13 +1,12 @@
 package com.example.phonehub.dto;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
+import java.math.BigDecimal;
 
 @Data
 @NoArgsConstructor
@@ -29,10 +28,10 @@ public class CreateOrderRequest {
     private String buyerAddress;
 
     @Size(max = 50)
-    private String paymentMethod = "COD";
+    private String paymentMethod = "VNPAY";
 
-    @NotNull
-    private List<CreateOrderItemRequest> items;
+    // Tổng tiền đơn (VND). Cho phép client truyền trực tiếp để tạo order không cần items
+    private BigDecimal amount;
 }
 
 

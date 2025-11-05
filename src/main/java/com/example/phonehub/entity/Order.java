@@ -47,10 +47,10 @@ public class Order {
     private BigDecimal totalPrice;
 
     @Column(name = "payment_method", length = 50)
-    private String paymentMethod = "COD";
+    private String paymentMethod = "VNPAY";
 
     @Column(name = "status", length = 20)
-    private String status = "success";
+    private String status = "pending";
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<OrderItem> items = new ArrayList<>();

@@ -4,51 +4,44 @@ import com.example.phonehub.dto.CreateOrderRequest;
 import com.example.phonehub.dto.OrderDto;
 import com.example.phonehub.entity.*;
 import com.example.phonehub.repository.*;
-import com.example.phonehub.service.helper.OrderHelper;
 import com.example.phonehub.utils.OrderUtils;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
+import java.util.ArrayList;
 
 @Service
 @Transactional
 public class OrderService {
 
-    @Autowired private OrderRepository orderRepository;
-    @Autowired private UserRepository userRepository;
-    @Autowired private ProductRepository productRepository;
-    @Autowired private OrderHelper orderHelper;
+    @Autowired
+    private OrderRepository orderRepository;
+    @Autowired
+    private UserRepository userRepository;
+    // ProductRepository & OrderHelper không còn dùng khi tạo order theo amount
+
+    @Autowired
+    private com.example.phonehub.service.redis_cache.OrderCacheService orderCacheService;
 
     public Page<OrderDto> getOrders(int page, int size) {
-        Pageable p = PageRequest.of(page, size);
-        return OrderUtils.toDtoPage(orderRepository.findAll(p));
+        return orderCacheService.list(page, size);
     }
 
     public Page<OrderDto> getOrdersByUser(Integer userId, int page, int size) {
-        Pageable p = PageRequest.of(page, size);
-        return OrderUtils.toDtoPage(orderRepository.findByUser_Id(userId, p));
+        return orderCacheService.listByUser(userId, page, size);
     }
 
     public Optional<OrderDto> getById(Integer id) {
-        return orderRepository.findById(id).map(OrderUtils::toDto);
+        return orderCacheService.byId(id);
     }
 
     public OrderDto createOrder(CreateOrderRequest req) {
-        if (req.getItems() == null || req.getItems().isEmpty()) {
-            throw new RuntimeException("Order must contain at least one item");
-        }
 
         Order order = new Order();
-        
+
         if (req.getUserId() != null) {
             User user = userRepository.findById(req.getUserId())
                     .orElseThrow(() -> new RuntimeException("User not found: " + req.getUserId()));
@@ -59,39 +52,22 @@ public class OrderService {
         order.setBuyerEmail(req.getBuyerEmail());
         order.setBuyerPhone(req.getBuyerPhone());
         order.setBuyerAddress(req.getBuyerAddress());
-        order.setPaymentMethod(req.getPaymentMethod() != null ? req.getPaymentMethod() : "COD");
-        order.setStatus("success");
-        order.setTotalPrice(BigDecimal.ZERO);
-
-        List<OrderItem> items = new ArrayList<>();
-        BigDecimal total = BigDecimal.ZERO;
-
-        for (var itemReq : req.getItems()) {
-            Product product = productRepository.findById(itemReq.getProductId())
-                    .orElseThrow(() -> new RuntimeException("Product not found: " + itemReq.getProductId()));
-
-            BigDecimal unitPrice = orderHelper.getUnitPrice(product).setScale(2, RoundingMode.HALF_UP);
-            BigDecimal discountPercent = orderHelper.parseDiscountPercentage(product.getDiscount());
-            BigDecimal subtotal = orderHelper.calcSubtotal(unitPrice, itemReq.getQuantity(), discountPercent);
-
-            OrderItem item = new OrderItem();
-            item.setOrder(order);
-            item.setProduct(product);
-            item.setQuantity(itemReq.getQuantity());
-            item.setUnitPrice(unitPrice);
-            item.setDiscount(discountPercent);
-            item.setSubtotal(subtotal);
-            items.add(item);
-
-            total = total.add(subtotal);
-        }
-
-        order.setItems(items);
-        order.setTotalPrice(total.setScale(2, RoundingMode.HALF_UP));
+        order.setPaymentMethod(req.getPaymentMethod() != null ? req.getPaymentMethod() : "VNPAY");
+        order.setStatus("pending");
+        order.setTotalPrice((req.getAmount()));
+        order.setItems(new ArrayList<>());
 
         Order saved = orderRepository.save(order);
+        orderCacheService.evictAll();
+        return OrderUtils.toDto(saved);
+    }
+
+    public OrderDto updateStatus(Integer orderId, String status) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found: " + orderId));
+        order.setStatus(status);
+        Order saved = orderRepository.save(order);
+        orderCacheService.evictAll();
         return OrderUtils.toDto(saved);
     }
 }
-
-

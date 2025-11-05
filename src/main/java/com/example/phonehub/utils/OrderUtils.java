@@ -20,8 +20,6 @@ public class OrderUtils {
         dto.setProductName(item.getProduct() != null ? item.getProduct().getName() : null);
         dto.setQuantity(item.getQuantity());
         dto.setUnitPrice(item.getUnitPrice());
-        dto.setDiscount(item.getDiscount());
-        dto.setSubtotal(item.getSubtotal());
         dto.setCreatedAt(item.getCreatedAt());
         return dto;
     }

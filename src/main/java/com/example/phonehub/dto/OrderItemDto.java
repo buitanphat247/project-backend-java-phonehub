@@ -16,8 +16,6 @@ public class OrderItemDto {
     private String productName;
     private Integer quantity;
     private BigDecimal unitPrice;
-    private BigDecimal discount; // percentage
-    private BigDecimal subtotal;
     private LocalDateTime createdAt;
 }
 

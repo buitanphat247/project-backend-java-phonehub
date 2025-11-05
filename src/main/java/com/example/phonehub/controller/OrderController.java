@@ -4,30 +4,31 @@ import com.example.phonehub.auth.annotation.Public;
 import com.example.phonehub.dto.ApiResponse;
 import com.example.phonehub.dto.CreateOrderRequest;
 import com.example.phonehub.dto.OrderDto;
+import com.example.phonehub.dto.UpdateOrderStatusRequest;
 import com.example.phonehub.service.OrderService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/orders")
 @Public
-@Tag(name = "Orders", description = "🧾 API đặt hàng (simulation mode)")
+@Tag(name = "Orders", description = "🧾 API đặt hàng. Trạng thái: pending/success/failed. Có thể tạo order trước (không cần items), rồi thêm items sau qua module Order Items.")
 public class OrderController {
 
     @Autowired
     private OrderService orderService;
 
-    @Operation(summary = "Danh sách orders", description = "Lấy danh sách orders với phân trang")
+    @Operation(summary = "Danh sách orders", description = "Lấy danh sách orders với phân trang. Trạng thái có thể là pending/success/failed.")
     @GetMapping
     public ResponseEntity<ApiResponse<Page<OrderDto>>> list(
             @RequestParam(defaultValue = "0") int page,
@@ -58,7 +59,27 @@ public class OrderController {
         }
     }
 
-    @Operation(summary = "Tạo order", description = "Tạo mới một order (simulation)")
+    @Operation(
+            summary = "Tạo order",
+            description = "Tạo mới một order không cần items. Truyền trực tiếp tổng tiền (amount). Mặc định status=\"pending\".",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    required = true,
+                    content = @io.swagger.v3.oas.annotations.media.Content(
+                            mediaType = "application/json",
+                            examples = @io.swagger.v3.oas.annotations.media.ExampleObject(value = """
+                            {
+                              "userId": 1,
+                              "buyerName": "Nguyễn Văn A",
+                              "buyerEmail": "nguyenvana@example.com",
+                              "buyerPhone": "0912345678",
+                              "buyerAddress": "123 Đường ABC, Quận XYZ, TP.HCM",
+                              "paymentMethod": "VNPAY",
+                              "amount": 37900000.00
+                            }
+                            """)
+                    )
+            )
+    )
     @PostMapping
     public ResponseEntity<ApiResponse<OrderDto>> create(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
@@ -72,11 +93,8 @@ public class OrderController {
                               "buyerEmail": "nguyenvana@example.com",
                               "buyerPhone": "0912345678",
                               "buyerAddress": "123 Đường ABC, Quận XYZ, TP.HCM",
-                              "paymentMethod": "COD",
-                              "items": [
-                                { "productId": 1, "quantity": 2 },
-                                { "productId": 3, "quantity": 1 }
-                              ]
+                              "paymentMethod": "VNPAY",
+                              "amount": 37900000.00
                             }
                             """))
             )
@@ -91,6 +109,23 @@ public class OrderController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(ApiResponse.error("Lỗi khi tạo order: " + e.getMessage()));
+        }
+    }
+
+    @Operation(summary = "Cập nhật trạng thái order (PUT)", description = "Chỉ cập nhật field status: pending/success/failed; các trường khác giữ nguyên.")
+    @PutMapping("/{id}/status")
+    public ResponseEntity<ApiResponse<OrderDto>> updateStatus(
+            @PathVariable Integer id,
+            @Valid @RequestBody UpdateOrderStatusRequest req) {
+        try {
+            OrderDto updated = orderService.updateStatus(id, req.getStatus());
+            return ResponseEntity.ok(ApiResponse.success("Cập nhật trạng thái thành công", updated));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Lỗi khi cập nhật trạng thái: " + e.getMessage()));
         }
     }
 }

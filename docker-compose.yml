@@ -1,36 +1,100 @@
 services:
+  # MySQL Database
   db:
     image: mysql:8.0
+    container_name: phonehub-db
     restart: unless-stopped
     environment:
-      - MYSQL_DATABASE=phonehub
-      - MYSQL_USER=phonehub
-      - MYSQL_PASSWORD=phonehub
-      - MYSQL_ROOT_PASSWORD=phonehub
-    # Không publish cổng MySQL ra host để tránh xung đột 3306
-    # Nếu cần truy cập từ host: bật dòng dưới và đổi sang 3307:3306
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: phonehub
+      MYSQL_USER: phonehub
+      MYSQL_PASSWORD: phonehub
+      TZ: Asia/Ho_Chi_Minh
     ports:
-      - "3307:3306"
+      - "3307:3306"  # Map port 3307 ra ngoài để tránh conflict với MySQL local
     volumes:
       - db_data:/var/lib/mysql
       - ./db/init:/docker-entrypoint-initdb.d
+    networks:
+      - phonehub-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpassword"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: phonehub-redis
+    restart: unless-stopped
+    ports:
+      - "6380:6379"  # Map port 6380 ra ngoài để tránh conflict với Redis local
+    volumes:
+      - redis_data:/data
+    networks:
+      - phonehub-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # Spring Boot Application
   app:
-    build: .
-    depends_on:
-      - db
-    environment:
-      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/phonehub?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh&characterEncoding=UTF-8
-      - SPRING_DATASOURCE_USERNAME=phonehub
-      - SPRING_DATASOURCE_PASSWORD=phonehub
-      - UPLOADCARE_PUBLIC_KEY=${UPLOADCARE_PUBLIC_KEY}
-      - UPLOADCARE_SECRET_KEY=${UPLOADCARE_SECRET_KEY}
-      - UPLOADCARE_CDN_BASE=${UPLOADCARE_CDN_BASE}
-      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
-      - SERVER_PORT=8080
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: phonehub-app
+    restart: unless-stopped
     ports:
       - "8080:8080"
+    environment:
+      # Database
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/phonehub?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh&characterEncoding=UTF-8
+      SPRING_DATASOURCE_USERNAME: phonehub
+      SPRING_DATASOURCE_PASSWORD: phonehub
+      
+      # Redis
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      
+      # JWT
+      JWT_SECRET: PhoneHub2024!@#$%^&*()_+SecretKeyForAuthenticationAndAuthorizationPurposesOnly
+      JWT_ENVIRONMENT: docker
+      
+      # Mail (optional - có thể override)
+      SPRING_MAIL_HOST: smtp.gmail.com
+      SPRING_MAIL_PORT: 587
+      SPRING_MAIL_USERNAME: tan270407@gmail.com
+      SPRING_MAIL_PASSWORD: fhlffioditvqjndr
+      
+      # Frontend URL
+      APP_FRONTEND_URL: http://localhost:3000
+      
+      # Java options
+      JAVA_OPTS: "-Xmx512m -Xms256m"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - phonehub-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/v1/database/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
 volumes:
   db_data:
+    driver: local
+  redis_data:
+    driver: local
 
+networks:
+  phonehub-network:
+    driver: bridge
 

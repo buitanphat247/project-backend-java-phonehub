@@ -1,27 +1,33 @@
-# ===== Stage 1: Build with Maven =====
+# Multi-stage build để tối ưu kích thước image
+# Stage 1: Build
 FROM maven:3.9-eclipse-temurin-21 AS build
-WORKDIR /workspace
-
-# Copy pom and download dependencies first (cache)
-COPY pom.xml .
-RUN --mount=type=cache,target=/root/.m2 mvn -q -e -DskipTests dependency:go-offline
-
-# Copy source and build
-COPY src ./src
-RUN --mount=type=cache,target=/root/.m2 mvn -q -e -DskipTests package
-
-# ===== Stage 2: Run with JRE =====
-FROM eclipse-temurin:21-jre
 WORKDIR /app
-COPY --from=build /workspace/target/*.jar app.jar
 
-# Default port
+# Copy pom.xml và tải dependencies (cache layer)
+COPY pom.xml .
+RUN mvn dependency:go-offline -B
+
+# Copy source code và build
+COPY src ./src
+RUN mvn clean package -DskipTests
+
+# Stage 2: Runtime
+FROM eclipse-temurin:21-jre-jammy
+WORKDIR /app
+
+# Cài curl cho healthcheck
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
+# Copy JAR từ stage build
+COPY --from=build /app/target/*.jar app.jar
+
+# Expose port
 EXPOSE 8080
 
-# JVM opts and Spring profiles configurable at runtime
-ENV JAVA_OPTS="-XX:+UseZGC -XX:MaxRAMPercentage=75.0" \
-    SPRING_PROFILES_ACTIVE=default
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
+  CMD curl -f http://localhost:8080/api/v1/database/health || exit 1
 
-ENTRYPOINT ["sh","-c","java $JAVA_OPTS -jar app.jar"]
-
+# Run application
+ENTRYPOINT ["java", "-jar", "app.jar"]
 

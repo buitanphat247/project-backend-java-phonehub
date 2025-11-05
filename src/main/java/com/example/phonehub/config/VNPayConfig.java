@@ -57,7 +57,7 @@ public class VNPayConfig {
         return digest;
     }
 
-    // Util for VNPAY
+    //Util for VNPAY
     public static String hashAllFields(Map fields) {
         List fieldNames = new ArrayList(fields.keySet());
         Collections.sort(fieldNames);
@@ -75,7 +75,7 @@ public class VNPayConfig {
                 sb.append("&");
             }
         }
-        return hmacSHA512(vnp_HashSecret, sb.toString());
+        return hmacSHA512(vnp_HashSecret,sb.toString());
     }
 
     public static String hmacSHA512(final String key, final String data) {
@@ -102,16 +102,47 @@ public class VNPayConfig {
     }
 
     public static String getIpAddress(HttpServletRequest request) {
-        String ipAdress;
+        String ipAddress = null;
         try {
-            ipAdress = request.getHeader("X-FORWARDED-FOR");
-            if (ipAdress == null) {
-                ipAdress = request.getLocalAddr();
+            // Thử các header khác nhau (hỗ trợ proxy/load balancer)
+            ipAddress = request.getHeader("X-Forwarded-For");
+            if (ipAddress == null || ipAddress.isEmpty() || "unknown".equalsIgnoreCase(ipAddress)) {
+                ipAddress = request.getHeader("X-Real-IP");
             }
+            if (ipAddress == null || ipAddress.isEmpty() || "unknown".equalsIgnoreCase(ipAddress)) {
+                ipAddress = request.getHeader("Proxy-Client-IP");
+            }
+            if (ipAddress == null || ipAddress.isEmpty() || "unknown".equalsIgnoreCase(ipAddress)) {
+                ipAddress = request.getHeader("WL-Proxy-Client-IP");
+            }
+            if (ipAddress == null || ipAddress.isEmpty() || "unknown".equalsIgnoreCase(ipAddress)) {
+                ipAddress = request.getHeader("HTTP_CLIENT_IP");
+            }
+            if (ipAddress == null || ipAddress.isEmpty() || "unknown".equalsIgnoreCase(ipAddress)) {
+                ipAddress = request.getHeader("HTTP_X_FORWARDED_FOR");
+            }
+            
+            // Nếu vẫn không có, dùng RemoteAddr (IP thực của client)
+            if (ipAddress == null || ipAddress.isEmpty() || "unknown".equalsIgnoreCase(ipAddress)) {
+                ipAddress = request.getRemoteAddr();
+            }
+            
+            // Nếu có nhiều IP (qua proxy), lấy IP đầu tiên
+            if (ipAddress != null && ipAddress.contains(",")) {
+                ipAddress = ipAddress.split(",")[0].trim();
+            }
+            
         } catch (Exception e) {
-            ipAdress = "Invalid IP:" + e.getMessage();
+            // Fallback về RemoteAddr nếu có lỗi
+            ipAddress = request.getRemoteAddr();
         }
-        return ipAdress;
+        
+        // Final fallback
+        if (ipAddress == null || ipAddress.isEmpty()) {
+            ipAddress = "127.0.0.1";
+        }
+        
+        return ipAddress;
     }
 
     public static String getRandomNumber(int len) {

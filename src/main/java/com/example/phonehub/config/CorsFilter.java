@@ -2,7 +2,6 @@ package com.example.phonehub.config;
 
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
-import jakarta.servlet.FilterConfig;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
@@ -14,6 +13,10 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
+/**
+ * CORS Filter với HIGHEST_PRECEDENCE để đảm bảo CORS headers được set trước mọi filter khác
+ * Xử lý cả preflight OPTIONS requests và actual requests
+ */
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class CorsFilter implements Filter {
@@ -25,16 +28,29 @@ public class CorsFilter implements Filter {
         HttpServletRequest request = (HttpServletRequest) req;
         HttpServletResponse response = (HttpServletResponse) res;
 
-        // Get origin from request
+        // Lấy origin từ request
         String origin = request.getHeader("Origin");
+        String referer = request.getHeader("Referer");
         
-        // Set CORS headers - cho phép tất cả origins
-        if (origin != null) {
-            response.setHeader("Access-Control-Allow-Origin", origin);
-        } else {
-            response.setHeader("Access-Control-Allow-Origin", "*");
+        // Xác định origin - ưu tiên Origin header, nếu không có thì lấy từ Referer
+        String requestOrigin = origin;
+        if (requestOrigin == null || requestOrigin.isEmpty()) {
+            if (referer != null && !referer.isEmpty()) {
+                // Extract origin từ Referer (ví dụ: http://163.61.182.56:8080/swagger-ui/index.html)
+                try {
+                    java.net.URL refererUrl = new java.net.URL(referer);
+                    requestOrigin = refererUrl.getProtocol() + "://" + refererUrl.getAuthority();
+                } catch (Exception e) {
+                    // Ignore
+                }
+            }
         }
         
+        // Luôn set CORS headers cho mọi request
+        // Cho phép tất cả origins (bao gồm Vercel, localhost, VPS IP)
+        response.setHeader("Access-Control-Allow-Origin", "*");
+        
+        // Set các CORS headers bắt buộc
         response.setHeader("Access-Control-Allow-Credentials", "false");
         response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS, HEAD");
         response.setHeader("Access-Control-Allow-Headers", "*");
@@ -42,23 +58,15 @@ public class CorsFilter implements Filter {
                 "Authorization, X-New-Access-Token, X-New-Refresh-Token, X-Token-Status, Content-Type, Content-Disposition");
         response.setHeader("Access-Control-Max-Age", "3600");
 
-        // Handle preflight OPTIONS request
+        // Xử lý preflight OPTIONS request
+        // Trả về 200 OK ngay lập tức, không cần đi tiếp trong filter chain
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
             response.setStatus(HttpServletResponse.SC_OK);
-            return;
+            return; // Dừng lại ở đây, không tiếp tục filter chain
         }
 
+        // Tiếp tục filter chain cho các request khác
         chain.doFilter(req, res);
-    }
-
-    @Override
-    public void init(FilterConfig filterConfig) throws ServletException {
-        // No initialization needed
-    }
-
-    @Override
-    public void destroy() {
-        // No cleanup needed
     }
 }
 

@@ -54,10 +54,13 @@ public class SwaggerConfig {
                 .servers(List.of(
                         new Server()
                                 .url("http://localhost:8080")
-                                .description("🔧 Development Server"),
+                                .description("🔧 Development Server (Local)"),
+                        new Server()
+                                .url("http://163.61.182.56:8080")
+                                .description("🖥️ VPS Production Server"),
                         new Server()
                                 .url("https://api.phonehub.com")
-                                .description("🚀 Production Server")
+                                .description("🚀 Production Server (Future)")
                 ))
                 .tags(List.of(
                         new Tag().name("Home").description("Trang chủ API"),

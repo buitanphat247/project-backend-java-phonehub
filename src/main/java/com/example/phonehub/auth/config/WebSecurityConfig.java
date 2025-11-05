@@ -63,6 +63,7 @@ public class WebSecurityConfig implements WebMvcConfigurer {
                     auth.requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll();
                     // Always public endpoints
                     auth.requestMatchers("/api/v1/auth/**").permitAll();
+                    auth.requestMatchers("/api/v1/database/**").permitAll();
                     auth.requestMatchers("/swagger-ui/**", "/swagger-ui.html").permitAll();
                     auth.requestMatchers("/api-docs/**", "/v3/api-docs/**").permitAll();
                     auth.requestMatchers("/").permitAll();
@@ -99,6 +100,6 @@ public class WebSecurityConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(roleBasedAccessInterceptor)
                 .addPathPatterns("/**")
-                .excludePathPatterns("/api/v1/auth/**", "/swagger-ui/**", "/api-docs/**", "/");
+                .excludePathPatterns("/api/v1/auth/**", "/api/v1/database/**", "/swagger-ui/**", "/api-docs/**", "/");
     }
 }

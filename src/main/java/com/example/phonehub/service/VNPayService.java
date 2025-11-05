@@ -20,11 +20,21 @@ public class VNPayService {
     @Value("${app.frontend.url:http://localhost:3000}")
     private String frontendBaseUrl;
 
-    public String createOrder(int total, String orderInfor, String urlReturn) {
+    public String createOrder(int total, String orderInfor, String urlReturn, HttpServletRequest request) {
         String vnp_Version = "2.1.0";
         String vnp_Command = "pay";
         String vnp_TxnRef = VNPayConfig.getRandomNumber(8);
-        String vnp_IpAddr = "127.0.0.1";
+        
+        // Lấy IP thực từ request (quan trọng cho VPS)
+        String vnp_IpAddr = VNPayConfig.getIpAddress(request);
+        if (vnp_IpAddr == null || vnp_IpAddr.isEmpty() || vnp_IpAddr.startsWith("Invalid")) {
+            // Fallback: lấy từ request.getRemoteAddr()
+            vnp_IpAddr = request.getRemoteAddr();
+            if (vnp_IpAddr == null || vnp_IpAddr.isEmpty()) {
+                vnp_IpAddr = "127.0.0.1";
+            }
+        }
+        
         String vnp_TmnCode = VNPayConfig.vnp_TmnCode;
         String orderType = "order-type";
 
@@ -54,7 +64,8 @@ public class VNPayService {
         String vnp_CreateDate = formatter.format(cld.getTime());
         vnp_Params.put("vnp_CreateDate", vnp_CreateDate);
 
-        cld.add(Calendar.MINUTE, 15);
+        // Tăng thời gian expire lên 30 phút để tránh timeout
+        cld.add(Calendar.MINUTE, 30);
         String vnp_ExpireDate = formatter.format(cld.getTime());
         vnp_Params.put("vnp_ExpireDate", vnp_ExpireDate);
 

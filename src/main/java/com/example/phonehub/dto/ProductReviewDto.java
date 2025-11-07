@@ -15,6 +15,7 @@ public class ProductReviewDto {
     private Integer id;
     private Integer productId;
     private Integer userId;
+    private Integer orderId;
     private ProductDto product;
     private UserDto user;
     private Integer rating;

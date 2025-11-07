@@ -112,7 +112,10 @@ public class ProductReviewController {
         }
     }
     
-    @Operation(summary = "➕ Tạo đánh giá mới", description = "Tạo một đánh giá mới cho sản phẩm (mỗi user chỉ được đánh giá 1 lần cho mỗi sản phẩm)")
+    @Operation(
+            summary = "➕ Tạo đánh giá mới",
+            description = "Tạo một đánh giá mới cho sản phẩm. Người dùng có thể tạo nhiều đánh giá (ví dụ mỗi đơn hàng một đánh giá). Có thể truyền orderId (tùy chọn) để liên kết review với order cụ thể."
+    )
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "✅ Tạo đánh giá thành công"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "❌ Dữ liệu không hợp lệ"),
@@ -131,6 +134,7 @@ public class ProductReviewController {
                         {
                           "productId": 1,
                           "userId": 1,
+                          "orderId": 5,
                           "rating": 5,
                           "comment": "Tôi rất hài lòng với sản phẩm này. Chất lượng tốt, giá cả hợp lý."
                         }
@@ -154,7 +158,7 @@ public class ProductReviewController {
         }
     }
     
-    @Operation(summary = "✏️ Cập nhật đánh giá", description = "Cập nhật thông tin đánh giá (chỉ user tạo review mới được sửa)")
+    @Operation(summary = "✏️ Cập nhật đánh giá", description = "Cập nhật thông tin đánh giá (chỉ user tạo review mới được sửa). Dùng khi muốn chỉnh sửa một review cụ thể.")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "✅ Cập nhật đánh giá thành công"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "❌ Không tìm thấy đánh giá"),
@@ -174,6 +178,7 @@ public class ProductReviewController {
                         {
                           "productId": 1,
                           "userId": 1,
+                          "orderId": 5,
                           "rating": 4,
                           "comment": "Sản phẩm khá tốt nhưng còn một số điểm cần cải thiện."
                         }

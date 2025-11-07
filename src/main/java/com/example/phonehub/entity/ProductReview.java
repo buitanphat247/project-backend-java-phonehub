@@ -33,6 +33,10 @@ public class ProductReview {
     @NotNull(message = "User ID is required")
     private User user;
     
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id", nullable = true)
+    private Order order;
+    
     @Column(name = "rating", nullable = false)
     @NotNull(message = "Rating is required")
     @Min(value = 1, message = "Rating must be at least 1")

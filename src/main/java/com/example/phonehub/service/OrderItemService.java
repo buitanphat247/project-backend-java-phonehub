@@ -78,4 +78,18 @@ public class OrderItemService {
         orderCacheService.evictAll();
         return OrderUtils.toDto(saved);
     }
+
+    /**
+     * Kiểm tra xem user có mua order item này không
+     * @param userId ID của user
+     * @param orderItemId ID của order item
+     * @return true nếu user đã mua order item này, false nếu không
+     */
+    public boolean checkUserPurchasedItem(Integer userId, Integer orderItemId) {
+        if (userId == null || orderItemId == null) {
+            return false;
+        }
+        return orderItemRepository.findByIdAndUserId(orderItemId, userId).isPresent();
+    }
+
 }

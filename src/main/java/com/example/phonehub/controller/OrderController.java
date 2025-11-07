@@ -7,8 +7,11 @@ import com.example.phonehub.dto.OrderDto;
 import com.example.phonehub.dto.UpdateOrderStatusRequest;
 import com.example.phonehub.service.OrderService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -28,12 +31,19 @@ public class OrderController {
     @Autowired
     private OrderService orderService;
 
-    @Operation(summary = "Danh sách orders", description = "Lấy danh sách orders với phân trang. Trạng thái có thể là pending/success/failed.")
+    @Operation(
+            summary = "📋 Danh sách orders",
+            description = "Lấy danh sách orders với phân trang. Trạng thái có thể là pending/success/failed. Có thể filter theo userId (tùy chọn)."
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "✅ Lấy danh sách thành công"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "❌ Lỗi server")
+    })
     @GetMapping
     public ResponseEntity<ApiResponse<Page<OrderDto>>> list(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) Integer userId) {
+            @Parameter(description = "Số trang (bắt đầu từ 0)", example = "0") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Số lượng orders mỗi trang", example = "10") @RequestParam(defaultValue = "10") int size,
+            @Parameter(description = "ID của user (tùy chọn, để filter orders theo user)", example = "1") @RequestParam(required = false) Integer userId) {
         try {
             Page<OrderDto> data = (userId == null)
                     ? orderService.getOrders(page, size)
@@ -45,9 +55,17 @@ public class OrderController {
         }
     }
 
-    @Operation(summary = "Chi tiết order", description = "Lấy chi tiết order theo ID")
+    @Operation(
+            summary = "🔍 Chi tiết order",
+            description = "Lấy chi tiết order theo ID. Bao gồm thông tin buyer, items, status, payment method."
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "✅ Lấy chi tiết thành công"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "❌ Order không tồn tại")
+    })
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<OrderDto>> getById(@PathVariable Integer id) {
+    public ResponseEntity<ApiResponse<OrderDto>> getById(
+            @Parameter(description = "ID của order", required = true, example = "1") @PathVariable Integer id) {
         try {
             Optional<OrderDto> order = orderService.getById(id);
             return order.map(o -> ResponseEntity.ok(ApiResponse.success("Success", o)))
@@ -60,13 +78,23 @@ public class OrderController {
     }
 
     @Operation(
-            summary = "Tạo order",
-            description = "Tạo mới một order không cần items. Truyền trực tiếp tổng tiền (amount). Mặc định status=\"pending\".",
-            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            summary = "➕ Tạo order",
+            description = "Tạo mới một order không cần items. Truyền trực tiếp tổng tiền (amount). Mặc định status=\"pending\". Sau khi tạo, có thể thêm items qua endpoint POST /orders/{orderId}/items."
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "✅ Tạo order thành công"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "❌ Dữ liệu không hợp lệ"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "❌ User không tồn tại")
+    })
+    @PostMapping
+    public ResponseEntity<ApiResponse<OrderDto>> create(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "Dữ liệu tạo order",
                     required = true,
-                    content = @io.swagger.v3.oas.annotations.media.Content(
+                    content = @Content(
                             mediaType = "application/json",
-                            examples = @io.swagger.v3.oas.annotations.media.ExampleObject(value = """
+                            schema = @Schema(implementation = CreateOrderRequest.class),
+                            examples = @ExampleObject(value = """
                             {
                               "userId": 1,
                               "buyerName": "Nguyễn Văn A",
@@ -78,25 +106,6 @@ public class OrderController {
                             }
                             """)
                     )
-            )
-    )
-    @PostMapping
-    public ResponseEntity<ApiResponse<OrderDto>> create(
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "Dữ liệu tạo order",
-                    required = true,
-                    content = @Content(mediaType = "application/json",
-                            examples = @ExampleObject(value = """
-                            {
-                              "userId": 1,
-                              "buyerName": "Nguyễn Văn A",
-                              "buyerEmail": "nguyenvana@example.com",
-                              "buyerPhone": "0912345678",
-                              "buyerAddress": "123 Đường ABC, Quận XYZ, TP.HCM",
-                              "paymentMethod": "VNPAY",
-                              "amount": 37900000.00
-                            }
-                            """))
             )
             @Valid @RequestBody CreateOrderRequest req) {
         try {
@@ -112,10 +121,31 @@ public class OrderController {
         }
     }
 
-    @Operation(summary = "Cập nhật trạng thái order (PUT)", description = "Chỉ cập nhật field status: pending/success/failed; các trường khác giữ nguyên.")
+    @Operation(
+            summary = "✏️ Cập nhật trạng thái order",
+            description = "Chỉ cập nhật field status: pending/success/failed; các trường khác giữ nguyên."
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "✅ Cập nhật trạng thái thành công"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "❌ Status không hợp lệ"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "❌ Order không tồn tại")
+    })
     @PutMapping("/{id}/status")
     public ResponseEntity<ApiResponse<OrderDto>> updateStatus(
-            @PathVariable Integer id,
+            @Parameter(description = "ID của order", required = true, example = "1") @PathVariable Integer id,
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "Trạng thái mới của order",
+                    required = true,
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = UpdateOrderStatusRequest.class),
+                            examples = @ExampleObject(value = """
+                            {
+                              "status": "success"
+                            }
+                            """)
+                    )
+            )
             @Valid @RequestBody UpdateOrderStatusRequest req) {
         try {
             OrderDto updated = orderService.updateStatus(id, req.getStatus());

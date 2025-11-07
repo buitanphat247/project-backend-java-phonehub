@@ -5,6 +5,7 @@ import com.example.phonehub.dto.ProductReviewDto;
 import com.example.phonehub.entity.Product;
 import com.example.phonehub.entity.ProductReview;
 import com.example.phonehub.entity.User;
+import com.example.phonehub.repository.OrderRepository;
 import com.example.phonehub.repository.ProductRepository;
 import com.example.phonehub.repository.ProductReviewRepository;
 import com.example.phonehub.repository.UserRepository;
@@ -33,6 +34,9 @@ public class ProductReviewService {
     
     @Autowired
     private UserRepository userRepository;
+    
+    @Autowired
+    private OrderRepository orderRepository;
     
     @Autowired
     private ProductReviewCacheService reviewCacheService;
@@ -66,16 +70,21 @@ public class ProductReviewService {
         User user = userRepository.findById(req.getUserId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
         
-        Optional<ProductReview> existingReview = reviewRepository.findByProductIdAndUserId(req.getProductId(), req.getUserId());
-        if (existingReview.isPresent()) {
-            throw new RuntimeException("User has already reviewed this product. Please update your existing review instead.");
-        }
-        
         ProductReview review = new ProductReview();
         review.setProduct(product);
         review.setUser(user);
         review.setRating(req.getRating());
         review.setComment(req.getComment());
+
+        // Set order nếu có orderId và thuộc về chính user này
+        if (req.getOrderId() != null) {
+            orderRepository.findById(req.getOrderId()).ifPresent(order -> {
+                if (order.getUser() != null && !order.getUser().getId().equals(user.getId())) {
+                    throw new RuntimeException("Order does not belong to this user");
+                }
+                review.setOrder(order);
+            });
+        }
         
         ProductReviewDto savedDto = ProductUtils.toDto(reviewRepository.save(review));
         reviewCacheService.invalidateProductReviewCache(req.getProductId());

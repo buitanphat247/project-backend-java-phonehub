@@ -80,6 +80,7 @@ public class ProductUtils {
         if (pr==null) return null; ProductReviewDto d=new ProductReviewDto();
         d.setId(pr.getId()); d.setProductId(pr.getProduct()!=null?pr.getProduct().getId():null);
         d.setUserId(pr.getUser()!=null?pr.getUser().getId():null);
+        d.setOrderId(pr.getOrder()!=null?pr.getOrder().getId():null);
         if (pr.getProduct()!=null) d.setProduct(toDtoSummary(pr.getProduct()));
         if (pr.getUser()!=null) d.setUser(UserUtils.toDto(pr.getUser()));
         d.setRating(pr.getRating()); d.setComment(pr.getComment());

@@ -3770,7 +3770,7 @@
                 ":id"
               ]
             },
-            "description": "Cập nhật thông tin đánh giá (chỉ user tạo review mới được sửa)",
+            "description": "Cập nhật thông tin đánh giá (chỉ user tạo review mới được sửa). Dùng khi muốn chỉnh sửa một review cụ thể.",
             "body": {
               "mode": "raw",
               "raw": "{}",
@@ -3811,7 +3811,7 @@
                     ":id"
                   ]
                 },
-                "description": "Cập nhật thông tin đánh giá (chỉ user tạo review mới được sửa)",
+                "description": "Cập nhật thông tin đánh giá (chỉ user tạo review mới được sửa). Dùng khi muốn chỉnh sửa một review cụ thể.",
                 "body": {
                   "mode": "raw",
                   "raw": "{}",
@@ -3857,7 +3857,7 @@
                     ":id"
                   ]
                 },
-                "description": "Cập nhật thông tin đánh giá (chỉ user tạo review mới được sửa)",
+                "description": "Cập nhật thông tin đánh giá (chỉ user tạo review mới được sửa). Dùng khi muốn chỉnh sửa một review cụ thể.",
                 "body": {
                   "mode": "raw",
                   "raw": "{}",
@@ -3903,7 +3903,7 @@
                     ":id"
                   ]
                 },
-                "description": "Cập nhật thông tin đánh giá (chỉ user tạo review mới được sửa)",
+                "description": "Cập nhật thông tin đánh giá (chỉ user tạo review mới được sửa). Dùng khi muốn chỉnh sửa một review cụ thể.",
                 "body": {
                   "mode": "raw",
                   "raw": "{}",
@@ -4011,7 +4011,7 @@
                 "product-reviews"
               ]
             },
-            "description": "Tạo một đánh giá mới cho sản phẩm (mỗi user chỉ được đánh giá 1 lần cho mỗi sản phẩm)",
+            "description": "Tạo một đánh giá mới cho sản phẩm. Người dùng có thể tạo nhiều đánh giá (ví dụ mỗi đơn hàng một đánh giá). Có thể truyền orderId (tùy chọn) để liên kết review với order cụ thể.",
             "body": {
               "mode": "raw",
               "raw": "{}",
@@ -4051,7 +4051,7 @@
                     "product-reviews"
                   ]
                 },
-                "description": "Tạo một đánh giá mới cho sản phẩm (mỗi user chỉ được đánh giá 1 lần cho mỗi sản phẩm)",
+                "description": "Tạo một đánh giá mới cho sản phẩm. Người dùng có thể tạo nhiều đánh giá (ví dụ mỗi đơn hàng một đánh giá). Có thể truyền orderId (tùy chọn) để liên kết review với order cụ thể.",
                 "body": {
                   "mode": "raw",
                   "raw": "{}",
@@ -4096,7 +4096,7 @@
                     "product-reviews"
                   ]
                 },
-                "description": "Tạo một đánh giá mới cho sản phẩm (mỗi user chỉ được đánh giá 1 lần cho mỗi sản phẩm)",
+                "description": "Tạo một đánh giá mới cho sản phẩm. Người dùng có thể tạo nhiều đánh giá (ví dụ mỗi đơn hàng một đánh giá). Có thể truyền orderId (tùy chọn) để liên kết review với order cụ thể.",
                 "body": {
                   "mode": "raw",
                   "raw": "{}",
@@ -4141,7 +4141,7 @@
                     "product-reviews"
                   ]
                 },
-                "description": "Tạo một đánh giá mới cho sản phẩm (mỗi user chỉ được đánh giá 1 lần cho mỗi sản phẩm)",
+                "description": "Tạo một đánh giá mới cho sản phẩm. Người dùng có thể tạo nhiều đánh giá (ví dụ mỗi đơn hàng một đánh giá). Có thể truyền orderId (tùy chọn) để liên kết review với order cụ thể.",
                 "body": {
                   "mode": "raw",
                   "raw": "{}",
@@ -5343,6 +5343,616 @@
       ]
     },
     {
+      "name": "Orders",
+      "item": [
+        {
+          "name": "✏️ Cập nhật trạng thái order",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text",
+                "description": "JWT Bearer Token"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/orders/{id}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "orders",
+                ":id",
+                "status"
+              ]
+            },
+            "description": "Chỉ cập nhật field status: pending/success/failed; các trường khác giữ nguyên.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "200 - ✅ Cập nhật trạng thái thành công",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text",
+                    "description": "JWT Bearer Token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/orders/{id}/status",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "orders",
+                    ":id",
+                    "status"
+                  ]
+                },
+                "description": "Chỉ cập nhật field status: pending/success/failed; các trường khác giữ nguyên.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "200",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "body": ""
+            },
+            {
+              "name": "400 - ❌ Status không hợp lệ",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text",
+                    "description": "JWT Bearer Token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/orders/{id}/status",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "orders",
+                    ":id",
+                    "status"
+                  ]
+                },
+                "description": "Chỉ cập nhật field status: pending/success/failed; các trường khác giữ nguyên.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "400",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "body": ""
+            },
+            {
+              "name": "404 - ❌ Order không tồn tại",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text",
+                    "description": "JWT Bearer Token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/orders/{id}/status",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "orders",
+                    ":id",
+                    "status"
+                  ]
+                },
+                "description": "Chỉ cập nhật field status: pending/success/failed; các trường khác giữ nguyên.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "404",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "body": ""
+            }
+          ]
+        },
+        {
+          "name": "📋 Danh sách orders",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text",
+                "description": "JWT Bearer Token"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "orders"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "",
+                  "description": "Số trang (bắt đầu từ 0)",
+                  "disabled": true
+                },
+                {
+                  "key": "size",
+                  "value": 10,
+                  "description": "Số lượng orders mỗi trang",
+                  "disabled": true
+                },
+                {
+                  "key": "userId",
+                  "value": 1,
+                  "description": "ID của user (tùy chọn, để filter orders theo user)",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Lấy danh sách orders với phân trang. Trạng thái có thể là pending/success/failed. Có thể filter theo userId (tùy chọn)."
+          },
+          "response": [
+            {
+              "name": "200 - ✅ Lấy danh sách thành công",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text",
+                    "description": "JWT Bearer Token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/orders",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "orders"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "",
+                      "description": "Số trang (bắt đầu từ 0)",
+                      "disabled": true
+                    },
+                    {
+                      "key": "size",
+                      "value": 10,
+                      "description": "Số lượng orders mỗi trang",
+                      "disabled": true
+                    },
+                    {
+                      "key": "userId",
+                      "value": 1,
+                      "description": "ID của user (tùy chọn, để filter orders theo user)",
+                      "disabled": true
+                    }
+                  ]
+                },
+                "description": "Lấy danh sách orders với phân trang. Trạng thái có thể là pending/success/failed. Có thể filter theo userId (tùy chọn)."
+              },
+              "status": "200",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "body": ""
+            },
+            {
+              "name": "500 - ❌ Lỗi server",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text",
+                    "description": "JWT Bearer Token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/orders",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "orders"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "",
+                      "description": "Số trang (bắt đầu từ 0)",
+                      "disabled": true
+                    },
+                    {
+                      "key": "size",
+                      "value": 10,
+                      "description": "Số lượng orders mỗi trang",
+                      "disabled": true
+                    },
+                    {
+                      "key": "userId",
+                      "value": 1,
+                      "description": "ID của user (tùy chọn, để filter orders theo user)",
+                      "disabled": true
+                    }
+                  ]
+                },
+                "description": "Lấy danh sách orders với phân trang. Trạng thái có thể là pending/success/failed. Có thể filter theo userId (tùy chọn)."
+              },
+              "status": "500",
+              "code": 500,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "body": ""
+            }
+          ]
+        },
+        {
+          "name": "➕ Tạo order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text",
+                "description": "JWT Bearer Token"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "orders"
+              ]
+            },
+            "description": "Tạo mới một order không cần items. Truyền trực tiếp tổng tiền (amount). Mặc định status=\"pending\". Sau khi tạo, có thể thêm items qua endpoint POST /orders/{orderId}/items.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "201 - ✅ Tạo order thành công",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text",
+                    "description": "JWT Bearer Token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/orders",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "orders"
+                  ]
+                },
+                "description": "Tạo mới một order không cần items. Truyền trực tiếp tổng tiền (amount). Mặc định status=\"pending\". Sau khi tạo, có thể thêm items qua endpoint POST /orders/{orderId}/items.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "201",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "body": ""
+            },
+            {
+              "name": "400 - ❌ Dữ liệu không hợp lệ",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text",
+                    "description": "JWT Bearer Token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/orders",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "orders"
+                  ]
+                },
+                "description": "Tạo mới một order không cần items. Truyền trực tiếp tổng tiền (amount). Mặc định status=\"pending\". Sau khi tạo, có thể thêm items qua endpoint POST /orders/{orderId}/items.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "400",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "body": ""
+            },
+            {
+              "name": "404 - ❌ User không tồn tại",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text",
+                    "description": "JWT Bearer Token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/orders",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "orders"
+                  ]
+                },
+                "description": "Tạo mới một order không cần items. Truyền trực tiếp tổng tiền (amount). Mặc định status=\"pending\". Sau khi tạo, có thể thêm items qua endpoint POST /orders/{orderId}/items.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "404",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "body": ""
+            }
+          ]
+        },
+        {
+          "name": "🔍 Chi tiết order",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text",
+                "description": "JWT Bearer Token"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/orders/{id}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "orders",
+                ":id"
+              ]
+            },
+            "description": "Lấy chi tiết order theo ID. Bao gồm thông tin buyer, items, status, payment method."
+          },
+          "response": [
+            {
+              "name": "200 - ✅ Lấy chi tiết thành công",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text",
+                    "description": "JWT Bearer Token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/orders/{id}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "orders",
+                    ":id"
+                  ]
+                },
+                "description": "Lấy chi tiết order theo ID. Bao gồm thông tin buyer, items, status, payment method."
+              },
+              "status": "200",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "body": ""
+            },
+            {
+              "name": "404 - ❌ Order không tồn tại",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text",
+                    "description": "JWT Bearer Token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/orders/{id}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "orders",
+                    ":id"
+                  ]
+                },
+                "description": "Lấy chi tiết order theo ID. Bao gồm thông tin buyer, items, status, payment method."
+              },
+              "status": "404",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "body": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "Category Management",
       "item": [
         {
@@ -5733,6 +6343,555 @@
       ]
     },
     {
+      "name": "Cart",
+      "item": [
+        {
+          "name": "Cập nhật số lượng",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text",
+                "description": "JWT Bearer Token"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cart/{cartItemId}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "cart",
+                ":cartItemId"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "200 - OK",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text",
+                    "description": "JWT Bearer Token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/cart/{cartItemId}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "cart",
+                    ":cartItemId"
+                  ]
+                },
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "200",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "body": ""
+            }
+          ]
+        },
+        {
+          "name": "Xóa 1 dòng giỏ hàng",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text",
+                "description": "JWT Bearer Token"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cart/{cartItemId}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "cart",
+                ":cartItemId"
+              ]
+            },
+            "description": ""
+          },
+          "response": [
+            {
+              "name": "200 - OK",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text",
+                    "description": "JWT Bearer Token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/cart/{cartItemId}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "cart",
+                    ":cartItemId"
+                  ]
+                },
+                "description": ""
+              },
+              "status": "200",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "body": ""
+            }
+          ]
+        },
+        {
+          "name": "Lấy giỏ hàng người dùng",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text",
+                "description": "JWT Bearer Token"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cart",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "cart"
+              ],
+              "query": [
+                {
+                  "key": "userId",
+                  "value": "",
+                  "description": "",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [
+            {
+              "name": "200 - OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text",
+                    "description": "JWT Bearer Token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/cart",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "cart"
+                  ],
+                  "query": [
+                    {
+                      "key": "userId",
+                      "value": "",
+                      "description": "",
+                      "disabled": false
+                    }
+                  ]
+                },
+                "description": ""
+              },
+              "status": "200",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "body": ""
+            }
+          ]
+        },
+        {
+          "name": "Thêm/cập nhật sản phẩm vào giỏ (upsert)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text",
+                "description": "JWT Bearer Token"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cart",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "cart"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "200 - OK",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text",
+                    "description": "JWT Bearer Token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/cart",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "cart"
+                  ]
+                },
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "200",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "body": ""
+            }
+          ]
+        },
+        {
+          "name": "Xóa toàn bộ giỏ hàng của user",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text",
+                "description": "JWT Bearer Token"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cart/clear",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "cart",
+                "clear"
+              ],
+              "query": [
+                {
+                  "key": "userId",
+                  "value": "",
+                  "description": "",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [
+            {
+              "name": "200 - OK",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text",
+                    "description": "JWT Bearer Token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/cart/clear",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "cart",
+                    "clear"
+                  ],
+                  "query": [
+                    {
+                      "key": "userId",
+                      "value": "",
+                      "description": "",
+                      "disabled": false
+                    }
+                  ]
+                },
+                "description": ""
+              },
+              "status": "200",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "body": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "VNPay",
+      "item": [
+        {
+          "name": "Tạo giao dịch VNPay (redirect)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text",
+                "description": "JWT Bearer Token"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/vnpay/submitOrder",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "vnpay",
+                "submitOrder"
+              ],
+              "query": [
+                {
+                  "key": "amount",
+                  "value": "",
+                  "description": "Số tiền VND thật, ví dụ 37900000",
+                  "disabled": false
+                },
+                {
+                  "key": "orderInfo",
+                  "value": "",
+                  "description": "Mô tả đơn hàng",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": "amount: số tiền VND (>=5,000 và <1 tỷ). Trả về chuỗi redirect:<url> cho trình duyệt."
+          },
+          "response": [
+            {
+              "name": "200 - OK",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text",
+                    "description": "JWT Bearer Token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/vnpay/submitOrder",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "vnpay",
+                    "submitOrder"
+                  ],
+                  "query": [
+                    {
+                      "key": "amount",
+                      "value": "",
+                      "description": "Số tiền VND thật, ví dụ 37900000",
+                      "disabled": false
+                    },
+                    {
+                      "key": "orderInfo",
+                      "value": "",
+                      "description": "Mô tả đơn hàng",
+                      "disabled": false
+                    }
+                  ]
+                },
+                "description": "amount: số tiền VND (>=5,000 và <1 tỷ). Trả về chuỗi redirect:<url> cho trình duyệt."
+              },
+              "status": "200",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "body": ""
+            }
+          ]
+        },
+        {
+          "name": "VNPay return URL",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text",
+                "description": "JWT Bearer Token"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/vnpay/vnpay-payment",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "vnpay",
+                "vnpay-payment"
+              ]
+            },
+            "description": "VNPay redirect về FE theo app.frontend.url; endpoint này trả về view demo nếu hit trực tiếp."
+          },
+          "response": [
+            {
+              "name": "200 - OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text",
+                    "description": "JWT Bearer Token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/vnpay/vnpay-payment",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "vnpay",
+                    "vnpay-payment"
+                  ]
+                },
+                "description": "VNPay redirect về FE theo app.frontend.url; endpoint này trả về view demo nếu hit trực tiếp."
+              },
+              "status": "200",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "body": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "File Upload",
       "item": [
         {
@@ -6000,6 +7159,628 @@
                   ]
                 },
                 "description": "Xóa file khỏi Uploadcare"
+              },
+              "status": "404",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "body": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Order Items",
+      "item": [
+        {
+          "name": "📋 Danh sách items theo order",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text",
+                "description": "JWT Bearer Token"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/orders/{orderId}/items",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "orders",
+                ":orderId",
+                "items"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "",
+                  "description": "Số trang (bắt đầu từ 0)",
+                  "disabled": true
+                },
+                {
+                  "key": "size",
+                  "value": 10,
+                  "description": "Số lượng items mỗi trang",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Phân trang danh sách items thuộc một order. Trả về các trường: id, productId, productName, quantity, unitPrice, createdAt."
+          },
+          "response": [
+            {
+              "name": "200 - ✅ Lấy danh sách thành công",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text",
+                    "description": "JWT Bearer Token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/orders/{orderId}/items",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "orders",
+                    ":orderId",
+                    "items"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "",
+                      "description": "Số trang (bắt đầu từ 0)",
+                      "disabled": true
+                    },
+                    {
+                      "key": "size",
+                      "value": 10,
+                      "description": "Số lượng items mỗi trang",
+                      "disabled": true
+                    }
+                  ]
+                },
+                "description": "Phân trang danh sách items thuộc một order. Trả về các trường: id, productId, productName, quantity, unitPrice, createdAt."
+              },
+              "status": "200",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "body": ""
+            },
+            {
+              "name": "404 - ❌ Order không tồn tại",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text",
+                    "description": "JWT Bearer Token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/orders/{orderId}/items",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "orders",
+                    ":orderId",
+                    "items"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "",
+                      "description": "Số trang (bắt đầu từ 0)",
+                      "disabled": true
+                    },
+                    {
+                      "key": "size",
+                      "value": 10,
+                      "description": "Số lượng items mỗi trang",
+                      "disabled": true
+                    }
+                  ]
+                },
+                "description": "Phân trang danh sách items thuộc một order. Trả về các trường: id, productId, productName, quantity, unitPrice, createdAt."
+              },
+              "status": "404",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "body": ""
+            }
+          ]
+        },
+        {
+          "name": "➕ Thêm item vào order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text",
+                "description": "JWT Bearer Token"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/orders/{orderId}/items",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "orders",
+                ":orderId",
+                "items"
+              ]
+            },
+            "description": "Tạo một order item mới cho order hiện có. Truyền productId, quantity, unitPrice (VND tại thời điểm mua). Tổng tiền order = sum(unit_price * quantity).",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "201 - ✅ Thêm item thành công",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text",
+                    "description": "JWT Bearer Token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/orders/{orderId}/items",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "orders",
+                    ":orderId",
+                    "items"
+                  ]
+                },
+                "description": "Tạo một order item mới cho order hiện có. Truyền productId, quantity, unitPrice (VND tại thời điểm mua). Tổng tiền order = sum(unit_price * quantity).",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "201",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "body": ""
+            },
+            {
+              "name": "400 - ❌ Dữ liệu không hợp lệ hoặc không đủ tồn kho",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text",
+                    "description": "JWT Bearer Token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/orders/{orderId}/items",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "orders",
+                    ":orderId",
+                    "items"
+                  ]
+                },
+                "description": "Tạo một order item mới cho order hiện có. Truyền productId, quantity, unitPrice (VND tại thời điểm mua). Tổng tiền order = sum(unit_price * quantity).",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "400",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "body": ""
+            },
+            {
+              "name": "404 - ❌ Order hoặc Product không tồn tại",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text",
+                    "description": "JWT Bearer Token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/orders/{orderId}/items",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "orders",
+                    ":orderId",
+                    "items"
+                  ]
+                },
+                "description": "Tạo một order item mới cho order hiện có. Truyền productId, quantity, unitPrice (VND tại thời điểm mua). Tổng tiền order = sum(unit_price * quantity).",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "404",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "body": ""
+            }
+          ]
+        },
+        {
+          "name": "✅ Kiểm tra user có mua order item",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text",
+                "description": "JWT Bearer Token"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users/{userId}/order-items/{orderItemId}/check-purchased",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "users",
+                ":userId",
+                "order-items",
+                ":orderItemId",
+                "check-purchased"
+              ]
+            },
+            "description": "Kiểm tra xem user có userId có mua order item có orderItemId không. Trả về true nếu đã mua, false nếu chưa mua."
+          },
+          "response": [
+            {
+              "name": "200 - ✅ Kiểm tra thành công",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text",
+                    "description": "JWT Bearer Token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/users/{userId}/order-items/{orderItemId}/check-purchased",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "users",
+                    ":userId",
+                    "order-items",
+                    ":orderItemId",
+                    "check-purchased"
+                  ]
+                },
+                "description": "Kiểm tra xem user có userId có mua order item có orderItemId không. Trả về true nếu đã mua, false nếu chưa mua."
+              },
+              "status": "200",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "body": ""
+            },
+            {
+              "name": "500 - ❌ Lỗi server",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text",
+                    "description": "JWT Bearer Token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/users/{userId}/order-items/{orderItemId}/check-purchased",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "users",
+                    ":userId",
+                    "order-items",
+                    ":orderItemId",
+                    "check-purchased"
+                  ]
+                },
+                "description": "Kiểm tra xem user có userId có mua order item có orderItemId không. Trả về true nếu đã mua, false nếu chưa mua."
+              },
+              "status": "500",
+              "code": 500,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "body": ""
+            }
+          ]
+        },
+        {
+          "name": "💰 Tổng chi tiêu của user",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text",
+                "description": "JWT Bearer Token"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users/{userId}/order-items/total-spent",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "users",
+                ":userId",
+                "order-items",
+                "total-spent"
+              ]
+            },
+            "description": "Tính tổng số tiền đã chi tiêu dựa trên các order có status=success của userId"
+          },
+          "response": [
+            {
+              "name": "200 - ✅ Lấy tổng chi tiêu thành công",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text",
+                    "description": "JWT Bearer Token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/users/{userId}/order-items/total-spent",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "users",
+                    ":userId",
+                    "order-items",
+                    "total-spent"
+                  ]
+                },
+                "description": "Tính tổng số tiền đã chi tiêu dựa trên các order có status=success của userId"
+              },
+              "status": "200",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "body": ""
+            },
+            {
+              "name": "400 - ❌ User không tồn tại",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text",
+                    "description": "JWT Bearer Token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/users/{userId}/order-items/total-spent",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "users",
+                    ":userId",
+                    "order-items",
+                    "total-spent"
+                  ]
+                },
+                "description": "Tính tổng số tiền đã chi tiêu dựa trên các order có status=success của userId"
+              },
+              "status": "400",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "body": ""
+            }
+          ]
+        },
+        {
+          "name": "🔍 Chi tiết order item",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text",
+                "description": "JWT Bearer Token"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/order-items/{id}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "order-items",
+                ":id"
+              ]
+            },
+            "description": "Lấy chi tiết một order item theo ID. Trả về các trường: id, productId, productName, quantity, unitPrice, createdAt."
+          },
+          "response": [
+            {
+              "name": "200 - ✅ Lấy chi tiết thành công",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text",
+                    "description": "JWT Bearer Token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/order-items/{id}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "order-items",
+                    ":id"
+                  ]
+                },
+                "description": "Lấy chi tiết một order item theo ID. Trả về các trường: id, productId, productName, quantity, unitPrice, createdAt."
+              },
+              "status": "200",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [],
+              "body": ""
+            },
+            {
+              "name": "404 - ❌ Order item không tồn tại",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text",
+                    "description": "JWT Bearer Token"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/order-items/{id}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "order-items",
+                    ":id"
+                  ]
+                },
+                "description": "Lấy chi tiết một order item theo ID. Trả về các trường: id, productId, productName, quantity, unitPrice, createdAt."
               },
               "status": "404",
               "code": 404,

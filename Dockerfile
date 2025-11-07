@@ -15,8 +15,12 @@ RUN mvn clean package -DskipTests
 FROM eclipse-temurin:21-jre-jammy
 WORKDIR /app
 
-# Cài curl cho healthcheck
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+# Cài curl cho healthcheck và set timezone
+RUN apt-get update && apt-get install -y curl tzdata && rm -rf /var/lib/apt/lists/*
+
+# Set timezone sang Asia/Ho_Chi_Minh (GMT+7)
+ENV TZ=Asia/Ho_Chi_Minh
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 # Copy JAR từ stage build
 COPY --from=build /app/target/*.jar app.jar

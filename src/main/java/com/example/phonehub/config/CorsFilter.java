@@ -14,7 +14,8 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 
 /**
- * CORS Filter với HIGHEST_PRECEDENCE để đảm bảo CORS headers được set trước mọi filter khác
+ * CORS Filter với HIGHEST_PRECEDENCE để đảm bảo CORS headers được set trước mọi
+ * filter khác
  * Xử lý cả preflight OPTIONS requests và actual requests
  */
 @Component
@@ -24,19 +25,20 @@ public class CorsFilter implements Filter {
     @Override
     public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
             throws IOException, ServletException {
-        
+
         HttpServletRequest request = (HttpServletRequest) req;
         HttpServletResponse response = (HttpServletResponse) res;
 
         // Lấy origin từ request
         String origin = request.getHeader("Origin");
         String referer = request.getHeader("Referer");
-        
+
         // Xác định origin - ưu tiên Origin header, nếu không có thì lấy từ Referer
         String requestOrigin = origin;
         if (requestOrigin == null || requestOrigin.isEmpty()) {
             if (referer != null && !referer.isEmpty()) {
-                // Extract origin từ Referer (ví dụ: http://163.61.182.56:8080/swagger-ui/index.html)
+                // Extract origin từ Referer (ví dụ:
+                // http://163.61.182.56:8080/swagger-ui/index.html)
                 try {
                     java.net.URL refererUrl = new java.net.URL(referer);
                     requestOrigin = refererUrl.getProtocol() + "://" + refererUrl.getAuthority();
@@ -45,16 +47,16 @@ public class CorsFilter implements Filter {
                 }
             }
         }
-        
+
         // Luôn set CORS headers cho mọi request
         // Cho phép tất cả origins (bao gồm Vercel, localhost, VPS IP)
         response.setHeader("Access-Control-Allow-Origin", "*");
-        
+
         // Set các CORS headers bắt buộc
         response.setHeader("Access-Control-Allow-Credentials", "false");
         response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS, HEAD");
         response.setHeader("Access-Control-Allow-Headers", "*");
-        response.setHeader("Access-Control-Expose-Headers", 
+        response.setHeader("Access-Control-Expose-Headers",
                 "Authorization, X-New-Access-Token, X-New-Refresh-Token, X-Token-Status, Content-Type, Content-Disposition");
         response.setHeader("Access-Control-Max-Age", "3600");
 
@@ -69,4 +71,3 @@ public class CorsFilter implements Filter {
         chain.doFilter(req, res);
     }
 }
-

@@ -72,8 +72,11 @@ services:
       # Frontend URL
       APP_FRONTEND_URL: ${FRONTEND_URL:-https://project-frontend-nextjs-phonehub.vercel.app}
       
-      # Java options
-      JAVA_OPTS: "-Xmx512m -Xms256m"
+      # Timezone (quan trọng cho VNPay)
+      TZ: Asia/Ho_Chi_Minh
+      
+      # Java options - Set timezone cho JVM
+      JAVA_OPTS: "-Xmx512m -Xms256m -Duser.timezone=Asia/Ho_Chi_Minh"
     depends_on:
       db:
         condition: service_healthy

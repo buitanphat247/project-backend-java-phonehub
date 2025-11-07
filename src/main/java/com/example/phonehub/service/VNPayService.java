@@ -53,21 +53,31 @@ public class VNPayService {
         String locate = "vn";
         vnp_Params.put("vnp_Locale", locate);
 
-        String returnBase = frontendBaseUrl != null ? frontendBaseUrl : "http://localhost:3000";
+        String returnBase = frontendBaseUrl != null ? frontendBaseUrl : "https://phonehub.io.vn";
         if (returnBase.endsWith("/")) { returnBase = returnBase.substring(0, returnBase.length() - 1); }
         String finalReturnUrl = returnBase + VNPayConfig.vnp_Returnurl;
         vnp_Params.put("vnp_ReturnUrl", finalReturnUrl);
         vnp_Params.put("vnp_IpAddr", vnp_IpAddr);
 
-        Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));
+        // Set timezone Asia/Ho_Chi_Minh (GMT+7) - Quan trọng để VNPay tính đúng thời gian
+        TimeZone vietnamTimeZone = TimeZone.getTimeZone("Asia/Ho_Chi_Minh");
+        Calendar cld = Calendar.getInstance(vietnamTimeZone);
         SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
+        formatter.setTimeZone(vietnamTimeZone); // Set timezone cho formatter
+        
+        // Log để debug timezone
+        System.out.println("VNPay Timezone: " + vietnamTimeZone.getID());
+        System.out.println("VNPay Timezone Offset (hours): " + (vietnamTimeZone.getRawOffset() / (1000 * 60 * 60)));
+        
         String vnp_CreateDate = formatter.format(cld.getTime());
         vnp_Params.put("vnp_CreateDate", vnp_CreateDate);
+        System.out.println("VNPay CreateDate: " + vnp_CreateDate);
 
         // Tăng thời gian expire lên 30 phút để tránh timeout
         cld.add(Calendar.MINUTE, 30);
         String vnp_ExpireDate = formatter.format(cld.getTime());
         vnp_Params.put("vnp_ExpireDate", vnp_ExpireDate);
+        System.out.println("VNPay ExpireDate: " + vnp_ExpireDate + " (30 minutes from CreateDate)");
 
         List fieldNames = new ArrayList(vnp_Params.keySet());
         Collections.sort(fieldNames);

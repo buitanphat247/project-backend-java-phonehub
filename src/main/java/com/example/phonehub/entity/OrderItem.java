@@ -10,11 +10,11 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "order_items")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Entity
+@Table(name = "order_items")
 public class OrderItem {
 
     @Id
@@ -37,7 +37,12 @@ public class OrderItem {
     @NotNull
     private BigDecimal unitPrice;
 
-    // Bỏ discount và subtotal theo schema mới
+    @Column(name = "is_reviewed", nullable = false)
+    private Boolean isReviewed = false;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "review_id")
+    private ProductReview review;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

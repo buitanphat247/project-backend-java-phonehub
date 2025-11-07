@@ -2,13 +2,18 @@ package com.example.phonehub.service;
 
 import com.example.phonehub.dto.CreateProductReviewRequest;
 import com.example.phonehub.dto.ProductReviewDto;
+import com.example.phonehub.entity.Order;
+import com.example.phonehub.entity.OrderItem;
 import com.example.phonehub.entity.Product;
 import com.example.phonehub.entity.ProductReview;
 import com.example.phonehub.entity.User;
+import com.example.phonehub.repository.OrderItemRepository;
 import com.example.phonehub.repository.OrderRepository;
 import com.example.phonehub.repository.ProductRepository;
 import com.example.phonehub.repository.ProductReviewRepository;
 import com.example.phonehub.repository.UserRepository;
+import com.example.phonehub.service.redis_cache.OrderCacheService;
+import com.example.phonehub.service.redis_cache.OrderItemCacheService;
 import com.example.phonehub.service.redis_cache.ProductReviewCacheService;
 import com.example.phonehub.utils.ProductUtils;
 import jakarta.transaction.Transactional;
@@ -39,7 +44,16 @@ public class ProductReviewService {
     private OrderRepository orderRepository;
     
     @Autowired
+    private OrderItemRepository orderItemRepository;
+    
+    @Autowired
     private ProductReviewCacheService reviewCacheService;
+    
+    @Autowired
+    private OrderItemCacheService orderItemCacheService;
+    
+    @Autowired
+    private OrderCacheService orderCacheService;
     
     public Page<ProductReviewDto> getByProductId(Integer productId, int page, int size) {
         if (!productRepository.existsById(productId)) {
@@ -70,26 +84,38 @@ public class ProductReviewService {
         User user = userRepository.findById(req.getUserId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
         
+        Order order = orderRepository.findById(req.getOrderId())
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+        
+        if (order.getUser() != null && !order.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("Order does not belong to this user");
+        }
+        
+        OrderItem orderItem = orderItemRepository.findByOrder_IdAndProduct_Id(order.getId(), product.getId())
+                .orElseThrow(() -> new RuntimeException("Order item not found for this order and product"));
+        
+        if (Boolean.TRUE.equals(orderItem.getIsReviewed())) {
+            throw new RuntimeException("This order item has already been reviewed");
+        }
+        
         ProductReview review = new ProductReview();
         review.setProduct(product);
         review.setUser(user);
+        review.setOrder(order);
         review.setRating(req.getRating());
         review.setComment(req.getComment());
-
-        // Set order nếu có orderId và thuộc về chính user này
-        if (req.getOrderId() != null) {
-            orderRepository.findById(req.getOrderId()).ifPresent(order -> {
-                if (order.getUser() != null && !order.getUser().getId().equals(user.getId())) {
-                    throw new RuntimeException("Order does not belong to this user");
-                }
-                review.setOrder(order);
-            });
-        }
         
-        ProductReviewDto savedDto = ProductUtils.toDto(reviewRepository.save(review));
+        ProductReview saved = reviewRepository.save(review);
+        orderItem.setReview(saved);
+        orderItem.setIsReviewed(true);
+        orderItemRepository.save(orderItem);
+        
         reviewCacheService.invalidateProductReviewCache(req.getProductId());
         reviewCacheService.invalidateUserReviewCache(req.getUserId());
-        return savedDto;
+        orderItemCacheService.evictAll();
+        orderCacheService.evictAll();
+        
+        return ProductUtils.toDto(saved);
     }
     
     public ProductReviewDto update(Integer id, CreateProductReviewRequest req) {
@@ -106,6 +132,8 @@ public class ProductReviewService {
         ProductReviewDto updatedDto = ProductUtils.toDto(reviewRepository.save(review));
         reviewCacheService.invalidateProductReviewCache(review.getProduct().getId());
         reviewCacheService.invalidateUserReviewCache(review.getUser().getId());
+        orderItemCacheService.evictAll();
+        orderCacheService.evictAll();
         return updatedDto;
     }
 
@@ -114,9 +142,16 @@ public class ProductReviewService {
                 .orElseThrow(() -> new RuntimeException("Review not found"));
         Integer productId = review.getProduct().getId();
         Integer userId = review.getUser().getId();
+        orderItemRepository.findByReview_Id(id).ifPresent(item -> {
+            item.setIsReviewed(false);
+            item.setReview(null);
+            orderItemRepository.save(item);
+        });
         reviewRepository.deleteById(id);
         reviewCacheService.invalidateProductReviewCache(productId);
         reviewCacheService.invalidateUserReviewCache(userId);
+        orderItemCacheService.evictAll();
+        orderCacheService.evictAll();
     }
     
     public Double getAverageRating(Integer productId) {

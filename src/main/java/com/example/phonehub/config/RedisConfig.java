@@ -4,9 +4,11 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
@@ -31,15 +33,34 @@ public class RedisConfig {
      * - Hỗ trợ reactive programming
      * - Tự động quản lý connection pool
      * 
-     * Connection factory này sẽ tự động đọc cấu hình từ application.properties:
-     * - spring.data.redis.host
-     * - spring.data.redis.port
-     * - spring.data.redis.password
+     * Đọc cấu hình từ environment variables hoặc application.properties:
+     * - spring.data.redis.host (ưu tiên env: SPRING_DATA_REDIS_HOST)
+     * - spring.data.redis.port (ưu tiên env: SPRING_DATA_REDIS_PORT)
+     * - spring.data.redis.password (ưu tiên env: SPRING_DATA_REDIS_PASSWORD)
      * - spring.data.redis.database
      */
+    @Value("${spring.data.redis.host:localhost}")
+    private String redisHost;
+    
+    @Value("${spring.data.redis.port:6379}")
+    private int redisPort;
+    
+    @Value("${spring.data.redis.password:}")
+    private String redisPassword;
+    
+    @Value("${spring.data.redis.database:0}")
+    private int redisDatabase;
+    
     @Bean
     public RedisConnectionFactory redisConnectionFactory() {
-        return new LettuceConnectionFactory();
+        RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
+        config.setHostName(redisHost);
+        config.setPort(redisPort);
+        config.setDatabase(redisDatabase);
+        if (redisPassword != null && !redisPassword.isEmpty()) {
+            config.setPassword(redisPassword);
+        }
+        return new LettuceConnectionFactory(config);
     }
 
     /**

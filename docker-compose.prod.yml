@@ -38,9 +38,6 @@ services:
       interval: 10s
       timeout: 3s
       retries: 5
-    # Không expose port ra ngoài trong production (chỉ internal)
-    # ports:
-    #   - "6379:6379"
 
   # Spring Boot Application
   app:
@@ -55,9 +52,11 @@ services:
       SPRING_DATASOURCE_USERNAME: phonehub
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-phonehub}
       
-      # Redis
+      # Redis (kết nối đến Redis container)
+      SPRING_PROFILES_ACTIVE: prod
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
+      SPRING_DATA_REDIS_TIMEOUT: 10000ms
       
       # JWT
       JWT_SECRET: ${JWT_SECRET:-PhoneHub2024!@#$%^&*()_+SecretKeyForAuthenticationAndAuthorizationPurposesOnly}

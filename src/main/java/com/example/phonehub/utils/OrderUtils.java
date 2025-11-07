@@ -20,6 +20,13 @@ public class OrderUtils {
         dto.setProductName(item.getProduct() != null ? item.getProduct().getName() : null);
         dto.setQuantity(item.getQuantity());
         dto.setUnitPrice(item.getUnitPrice());
+        dto.setIsReviewed(item.getIsReviewed());
+        if (item.getReview() != null) {
+            dto.setReviewId(item.getReview().getId());
+            dto.setReviewRating(item.getReview().getRating());
+            dto.setReviewComment(item.getReview().getComment());
+            dto.setReviewCreatedAt(item.getReview().getCreatedAt());
+        }
         dto.setCreatedAt(item.getCreatedAt());
         return dto;
     }

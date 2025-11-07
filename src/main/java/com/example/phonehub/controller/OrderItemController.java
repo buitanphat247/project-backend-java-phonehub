@@ -5,6 +5,7 @@ import com.example.phonehub.dto.ApiResponse;
 import com.example.phonehub.dto.OrderItemDto;
 import com.example.phonehub.dto.CreateOrderItemRequest;
 import com.example.phonehub.dto.OrderDto;
+import com.example.phonehub.dto.UpdateOrderItemReviewRequest;
 import com.example.phonehub.service.OrderItemService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -20,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -39,7 +41,7 @@ public class OrderItemController {
 
     @Operation(
             summary = "📋 Danh sách items theo order",
-            description = "Phân trang danh sách items thuộc một order. Trả về các trường: id, productId, productName, quantity, unitPrice, createdAt."
+            description = "Phân trang danh sách items thuộc một order. Mỗi item bao gồm thông tin review (isReviewed, reviewId, reviewRating, reviewComment, reviewCreatedAt) nếu đã được đánh giá."
     )
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "✅ Lấy danh sách thành công"),
@@ -64,7 +66,7 @@ public class OrderItemController {
 
     @Operation(
             summary = "🔍 Chi tiết order item",
-            description = "Lấy chi tiết một order item theo ID. Trả về các trường: id, productId, productName, quantity, unitPrice, createdAt."
+            description = "Lấy chi tiết một order item theo ID. Bao gồm trạng thái review và dữ liệu review liên kết nếu có."
     )
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "✅ Lấy chi tiết thành công"),
@@ -86,7 +88,7 @@ public class OrderItemController {
 
     @Operation(
             summary = "➕ Thêm item vào order",
-            description = "Tạo một order item mới cho order hiện có. Truyền productId, quantity, unitPrice (VND tại thời điểm mua). Tổng tiền order = sum(unit_price * quantity)."
+            description = "Tạo một order item mới cho order hiện có. Item mới mặc định chưa được review (isReviewed=false, reviewId=null)."
     )
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "✅ Thêm item thành công"),
@@ -171,4 +173,28 @@ public class OrderItemController {
         }
     }
 
+    @Operation(
+            summary = "🔄 Cập nhật trạng thái review của order item",
+            description = "Đánh dấu order item đã/không review và gắn review cụ thể. Nếu reviewed=true thì reviewId là bắt buộc."
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "✅ Cập nhật trạng thái review thành công"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "❌ Thông tin không hợp lệ"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "❌ Order item hoặc Review không tồn tại")
+    })
+    @PutMapping("/order-items/{id}/review-state")
+    public ResponseEntity<ApiResponse<OrderItemDto>> updateReviewState(
+            @Parameter(description = "ID của order item", required = true, example = "1") @PathVariable Integer id,
+            @Valid @RequestBody UpdateOrderItemReviewRequest req) {
+        try {
+            OrderItemDto dto = orderItemService.updateReviewState(id, req.getReviewed(), req.getReviewId());
+            return ResponseEntity.ok(ApiResponse.success("Cập nhật trạng thái review thành công", dto));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Lỗi khi cập nhật trạng thái review: " + e.getMessage()));
+        }
+    }
 }

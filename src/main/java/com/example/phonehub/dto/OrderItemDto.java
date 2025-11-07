@@ -16,6 +16,11 @@ public class OrderItemDto {
     private String productName;
     private Integer quantity;
     private BigDecimal unitPrice;
+    private Boolean isReviewed;
+    private Integer reviewId;
+    private Integer reviewRating;
+    private String reviewComment;
+    private LocalDateTime reviewCreatedAt;
     private LocalDateTime createdAt;
 }
 

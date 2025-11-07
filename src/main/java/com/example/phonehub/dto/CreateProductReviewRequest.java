@@ -17,6 +17,7 @@ public class CreateProductReviewRequest {
     @NotNull(message = "User ID is required")
     private Integer userId;
     
+    @NotNull(message = "Order ID is required")
     private Integer orderId;
     
     @NotNull(message = "Rating is required")

@@ -75,7 +75,8 @@ public class SwaggerConfig {
                         new Tag().name("Product Specification Management").description("📋 API quản lý thông số kỹ thuật"),
                         new Tag().name("Product Reviews Management").description("⭐ API quản lý đánh giá sản phẩm"),
                         new Tag().name("Product Favorites").description("❤️ API quản lý sản phẩm yêu thích"),
-                        new Tag().name("File Upload").description("📤 API upload file và hình ảnh")
+                        new Tag().name("File Upload").description("📤 API upload file và hình ảnh"),
+                        new Tag().name("Redis").description("⚡ API kiểm tra trạng thái Redis và cache")
                 ))
                 .components(new Components()
                         .addSecuritySchemes("bearerAuth",

@@ -33,7 +33,7 @@ public class OrderController {
 
     @Operation(
             summary = "📋 Danh sách orders",
-            description = "Lấy danh sách orders với phân trang. Trạng thái có thể là pending/success/failed. Có thể filter theo userId (tùy chọn)."
+            description = "Lấy danh sách orders với phân trang. Trạng thái có thể là pending/success/failed. Mỗi order trả về danh sách items bao gồm các trường review (isReviewed, reviewId, reviewRating, reviewComment, reviewCreatedAt)."
     )
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "✅ Lấy danh sách thành công"),
@@ -57,7 +57,7 @@ public class OrderController {
 
     @Operation(
             summary = "🔍 Chi tiết order",
-            description = "Lấy chi tiết order theo ID. Bao gồm thông tin buyer, items, status, payment method."
+            description = "Lấy chi tiết order theo ID. Bao gồm thông tin buyer, items và dữ liệu review gắn với từng item nếu đã đánh giá."
     )
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "✅ Lấy chi tiết thành công"),

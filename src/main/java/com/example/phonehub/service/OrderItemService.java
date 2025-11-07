@@ -6,10 +6,13 @@ import com.example.phonehub.dto.OrderItemDto;
 import com.example.phonehub.entity.Order;
 import com.example.phonehub.entity.OrderItem;
 import com.example.phonehub.entity.Product;
+import com.example.phonehub.entity.ProductReview;
 import com.example.phonehub.repository.OrderItemRepository;
 import com.example.phonehub.repository.OrderRepository;
 import com.example.phonehub.repository.ProductRepository;
+import com.example.phonehub.repository.ProductReviewRepository;
 import com.example.phonehub.utils.OrderUtils;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -30,9 +33,43 @@ public class OrderItemService {
     // OrderHelper không còn cần thiết khi unitPrice được truyền từ client
 
     @Autowired
+    private ProductReviewRepository productReviewRepository;
+
+    @Autowired
     private com.example.phonehub.service.redis_cache.OrderItemCacheService orderItemCacheService;
     @Autowired
     private com.example.phonehub.service.redis_cache.OrderCacheService orderCacheService;
+
+    /**
+     * Cập nhật trạng thái review cho order item.
+     */
+    @Transactional
+    public OrderItemDto updateReviewState(Integer orderItemId, boolean reviewed, Integer reviewId) {
+        OrderItem item = orderItemRepository.findById(orderItemId)
+                .orElseThrow(() -> new RuntimeException("Order item not found: " + orderItemId));
+
+        if (reviewed) {
+            if (reviewId == null) {
+                throw new RuntimeException("Review ID is required when marking item as reviewed");
+            }
+            ProductReview review = productReviewRepository.findById(reviewId)
+                    .orElseThrow(() -> new RuntimeException("Review not found: " + reviewId));
+            if (!review.getOrder().getId().equals(item.getOrder().getId()) ||
+                    !review.getProduct().getId().equals(item.getProduct().getId())) {
+                throw new RuntimeException("Review does not belong to the same order item");
+            }
+            item.setReview(review);
+            item.setIsReviewed(true);
+        } else {
+            item.setReview(null);
+            item.setIsReviewed(false);
+        }
+
+        OrderItem saved = orderItemRepository.save(item);
+        orderItemCacheService.evictAll();
+        orderCacheService.evictAll();
+        return OrderUtils.toItemDto(saved);
+    }
 
     public Page<OrderItemDto> listByOrder(Integer orderId, int page, int size) {
         return orderItemCacheService.listByOrder(orderId, page, size);

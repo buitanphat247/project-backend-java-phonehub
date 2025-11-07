@@ -114,7 +114,7 @@ public class ProductReviewController {
     
     @Operation(
             summary = "➕ Tạo đánh giá mới",
-            description = "Tạo một đánh giá mới cho sản phẩm. Người dùng có thể tạo nhiều đánh giá (ví dụ mỗi đơn hàng một đánh giá). Có thể truyền orderId (tùy chọn) để liên kết review với order cụ thể."
+            description = "Tạo một đánh giá mới cho sản phẩm. orderId là bắt buộc và phải thuộc về user. Sau khi tạo review, order item tương ứng sẽ được đánh dấu isReviewed=true."
     )
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "✅ Tạo đánh giá thành công"),
@@ -158,7 +158,7 @@ public class ProductReviewController {
         }
     }
     
-    @Operation(summary = "✏️ Cập nhật đánh giá", description = "Cập nhật thông tin đánh giá (chỉ user tạo review mới được sửa). Dùng khi muốn chỉnh sửa một review cụ thể.")
+    @Operation(summary = "✏️ Cập nhật đánh giá", description = "Cập nhật thông tin đánh giá (chỉ user tạo review mới được sửa). Thay đổi sẽ cập nhật trực tiếp vào review gắn với order item.")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "✅ Cập nhật đánh giá thành công"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "❌ Không tìm thấy đánh giá"),

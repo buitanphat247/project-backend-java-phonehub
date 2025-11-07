@@ -28,8 +28,10 @@ services:
     image: redis:7-alpine
     container_name: phonehub-redis
     restart: unless-stopped
+    # Port mapping chỉ cần khi app Spring Boot chạy NGOÀI Docker (local)
+    # Nếu app chạy TRONG Docker, có thể bỏ port mapping để bảo mật hơn
     ports:
-      - "6380:6379"  # Map port 6380 ra ngoài để tránh conflict với Redis local
+      - "6380:6379"  # Map port 6380 ra ngoài để app local kết nối (có thể comment nếu chỉ dùng trong Docker)
     volumes:
       - redis_data:/data
     networks:

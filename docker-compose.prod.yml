@@ -65,8 +65,11 @@ services:
       # Mail
       SPRING_MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
       SPRING_MAIL_PORT: ${MAIL_PORT:-587}
-      SPRING_MAIL_USERNAME: ${MAIL_USERNAME}
-      SPRING_MAIL_PASSWORD: ${MAIL_PASSWORD}
+      SPRING_MAIL_USERNAME: ${MAIL_USERNAME:-tan270407@gmail.com}
+      SPRING_MAIL_PASSWORD: ${MAIL_PASSWORD:-fhlffioditvqjndr}
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: "true"
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: "true"
+      SPRING_MAIL_DEFAULT_ENCODING: "UTF-8"
       
       # Frontend URL
       APP_FRONTEND_URL: ${FRONTEND_URL:-https://project-frontend-nextjs-phonehub.vercel.app}

@@ -33,7 +33,8 @@ public class SecurityAnnotationConfig {
     public Set<String> publicUrls() {
         Set<String> urls = new HashSet<>();
         
-        RequestMappingHandlerMapping mapping = applicationContext.getBean(RequestMappingHandlerMapping.class);
+        // Chỉ định rõ bean name để tránh conflict với controllerEndpointHandlerMapping từ Actuator
+        RequestMappingHandlerMapping mapping = applicationContext.getBean("requestMappingHandlerMapping", RequestMappingHandlerMapping.class);
         Map<RequestMappingInfo, HandlerMethod> handlerMethods = mapping.getHandlerMethods();
         
         for (Map.Entry<RequestMappingInfo, HandlerMethod> entry : handlerMethods.entrySet()) {

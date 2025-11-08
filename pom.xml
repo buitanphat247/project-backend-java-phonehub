@@ -92,6 +92,12 @@
 			<artifactId>commons-pool2</artifactId>
 		</dependency>
 
+		<!-- Spring Boot Actuator - Monitoring & Metrics -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+
 		<!-- DevTools (reload nhanh khi code thay đổi) -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

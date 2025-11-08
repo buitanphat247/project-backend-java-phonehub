@@ -4,6 +4,7 @@ import com.example.phonehub.auth.AuthEntryPointJwt;
 import com.example.phonehub.auth.AuthTokenFilter;
 import com.example.phonehub.auth.interceptor.RoleBasedAccessInterceptor;
 import com.example.phonehub.config.CorsConfig;
+import com.example.phonehub.utils.PerformanceLoggingInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,6 +35,9 @@ public class WebSecurityConfig implements WebMvcConfigurer {
     
     @Autowired
     private RoleBasedAccessInterceptor roleBasedAccessInterceptor;
+    
+    @Autowired
+    private PerformanceLoggingInterceptor performanceLoggingInterceptor;
     
     @Autowired
     private CorsConfig corsConfig;
@@ -95,11 +99,17 @@ public class WebSecurityConfig implements WebMvcConfigurer {
         return http.build();
     }
     
-    // Register interceptor for role-based access control
+    // Register interceptors
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
+        // Performance logging interceptor (chạy đầu tiên để đo thời gian)
+        registry.addInterceptor(performanceLoggingInterceptor)
+                .addPathPatterns("/**")
+                .excludePathPatterns("/actuator/**", "/swagger-ui/**", "/api-docs/**");
+        
+        // Role-based access control interceptor
         registry.addInterceptor(roleBasedAccessInterceptor)
                 .addPathPatterns("/**")
-                .excludePathPatterns("/api/v1/auth/**", "/api/v1/database/**", "/swagger-ui/**", "/api-docs/**", "/");
+                .excludePathPatterns("/api/v1/auth/**", "/api/v1/database/**", "/swagger-ui/**", "/api-docs/**", "/", "/actuator/**");
     }
 }

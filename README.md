@@ -18,23 +18,24 @@
 
 ## ⚙️ 2. Công nghệ & Công cụ sử dụng
 
-| Thành phần        | Công nghệ / Phiên bản                     | Ghi chú                                            |
-|-------------------|-------------------------------------------|----------------------------------------------------|
-| Ngôn ngữ          | Java 17                                   |                                                     |
-| Framework         | Spring Boot 3.x                           | Spring Data JPA, Spring Security, Spring Cache      |
-| Cơ sở dữ liệu     | MySQL 8                                   | ORM: Hibernate (qua Spring Data JPA)               |
-| Authentication    | JWT                                       | Custom filter + annotation `@Public`               |
-| Cache / Queue     | Redis 7 (Lettuce)                         | Cache đơn hàng success, total spent                 |
-| Testing           | JUnit 5, Spring Test                      | Maven Surefire                                     |
-| Documentation     | Springdoc OpenAPI (Swagger UI)            | `/swagger-ui/index.html`, `/api-docs`              |
-| CI/CD             | Docker, (đang mở rộng GitHub Actions)     | Build image, push Docker Hub                       |
-| Deployment        | Docker Compose (local & prod), VPS Ubuntu | Hồ sơ `default`, `prod`                            |
+| Thành phần     | Công nghệ / Phiên bản                     | Ghi chú                                        |
+| -------------- | ----------------------------------------- | ---------------------------------------------- |
+| Ngôn ngữ       | Java 17                                   |                                                |
+| Framework      | Spring Boot 3.x                           | Spring Data JPA, Spring Security, Spring Cache |
+| Cơ sở dữ liệu  | MySQL 8                                   | ORM: Hibernate (qua Spring Data JPA)           |
+| Authentication | JWT                                       | Custom filter + annotation `@Public`           |
+| Cache / Queue  | Redis 7 (Lettuce)                         | Cache đơn hàng success, total spent            |
+| Testing        | JUnit 5, Spring Test                      | Maven Surefire                                 |
+| Documentation  | Springdoc OpenAPI (Swagger UI)            | `/swagger-ui/index.html`, `/api-docs`          |
+| CI/CD          | Docker, (đang mở rộng GitHub Actions)     | Build image, push Docker Hub                   |
+| Deployment     | Docker Compose (local & prod), VPS Ubuntu | Hồ sơ `default`, `prod`                        |
 
 ---
 
 ## 🏗️ 3. Kiến trúc hệ thống
 
 ### 🔸 Mô hình tổng thể
+
 - Kiến trúc **monolithic RESTful** với pattern đa tầng (layered architecture).
 - Thành phần chính:
   - **API Gateway**: Spring MVC controllers.
@@ -42,9 +43,10 @@
   - **Repository layer**: Spring Data JPA truy cập MySQL.
   - **Cache**: Redis cho danh sách orders thành công, tổng chi tiêu user, health check.
   - **External services**: Gmail SMTP, cổng thanh toán (VNPAY).
-- *(Có thể bổ sung sơ đồ `docs/architecture.png` trong tương lai).*
+- _(Có thể bổ sung sơ đồ `docs/architecture.png` trong tương lai)._
 
 ### 🔸 Mô hình xử lý yêu cầu
+
 1. Request tới `Controller`.
 2. Controller gọi `Service` xử lý nghiệp vụ, kiểm tra quyền qua interceptors.
 3. Service truy cập `Repository` (MySQL) hoặc Redis cache.
@@ -85,6 +87,7 @@ pom.xml
 ## 🧩 5. Cấu hình môi trường (.env)
 
 Mẫu `.env.example` (tham khảo):
+
 ```
 # Database
 SPRING_DATASOURCE_URL=jdbc:mysql://localhost:3306/phonehub?useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&characterEncoding=UTF-8
@@ -121,21 +124,25 @@ SPRING_PROFILES_ACTIVE=default
 ## ⚡ 6. Cài đặt & Chạy dự án
 
 1️⃣ **Clone dự án**
+
 ```bash
 git clone https://github.com/<username>/phonehub-backend.git
 cd phonehub-backend
 ```
 
 2️⃣ **Cài đặt phụ thuộc**
+
 ```bash
 mvn clean install
 ```
 
 3️⃣ **Khởi tạo cơ sở dữ liệu & Redis**
+
 - Nếu dùng Docker: `docker compose up -d db redis`
 - Nếu dùng dịch vụ ngoài: tạo database `phonehub`, chạy Redis server, cập nhật `.env`
 
 4️⃣ **Chạy dự án**
+
 ```bash
 # Local với Maven
 mvn spring-boot:run
@@ -156,6 +163,7 @@ docker compose up -d
 - Postman collection: `scripts/phonehub.postman.json`
 
 **Ví dụ:**
+
 ```
 POST /api/v1/auth/login
 Content-Type: application/json
@@ -165,7 +173,9 @@ Content-Type: application/json
   "password": "123456"
 }
 ```
+
 **Response:**
+
 ```
 {
   "status": "success",
@@ -182,9 +192,11 @@ Content-Type: application/json
 ## 🧪 8. Testing
 
 - Unit & integration tests:
+
 ```bash
 mvn test
 ```
+
 - Có thể cấu hình thêm:
   - `mvn -Dtest=OrderServiceTest test` để chạy từng lớp.
   - Báo cáo coverage (đang tích hợp Jacoco).
@@ -194,10 +206,12 @@ mvn test
 ## ☁️ 9. Triển khai (Deployment)
 
 ### Cấu hình môi trường Production
+
 - Sử dụng `.env.prod` hoặc biến môi trường trực tiếp trên VPS.
 - Bật profile `prod`: `SPRING_PROFILES_ACTIVE=prod`.
 
 ### Dockerfile (trích)
+
 ```dockerfile
 FROM eclipse-temurin:17-jdk-alpine
 WORKDIR /app
@@ -208,6 +222,7 @@ ENTRYPOINT ["java","-jar","app.jar"]
 ```
 
 ### Docker Compose (prod)
+
 ```bash
 docker compose -f docker-compose.prod.yml down
 docker pull buitanphat2747/phonehub-app:latest
@@ -215,6 +230,7 @@ docker compose -f docker-compose.prod.yml up -d
 ```
 
 ### Logging & Monitoring
+
 - Actuator `/actuator/health`, `/actuator/metrics`, `/actuator/prometheus`
 - Có thể tích hợp Prometheus + Grafana, ELK stack (đang nghiên cứu).
 
@@ -234,11 +250,12 @@ docker compose -f docker-compose.prod.yml up -d
 
 - **Kế hoạch**: GitHub Actions build → test → build Docker → push Docker Hub → trigger deploy.
 - Ví dụ workflow (`.github/workflows/ci.yml` - gợi ý):
+
 ```yaml
 name: CI
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -247,10 +264,11 @@ jobs:
       - uses: actions/setup-java@v3
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: "17"
       - run: mvn -B clean verify
       - run: docker build -t phonehub-app:${{ github.sha }} .
 ```
+
 - Triển khai tự động: cập nhật VPS script để pull image mới và restart dịch vụ.
 
 ---
@@ -267,16 +285,16 @@ jobs:
 
 ## 🧑‍💻 13. Thành viên & Liên hệ
 
-| Tên            | Vai trò             | Liên hệ                     |
-|----------------|---------------------|-----------------------------|
-| Bùi Tấn Phát   | Backend Engineer    | tan270407@gmail.com · 0984 380 205 · [Facebook](https://facebook.com/btanphat) |
-| PhoneHub Team  | Product / DevOps    | https://buitanphat.site |
+| Tên           | Vai trò          | Liên hệ                                                                        |
+| ------------- | ---------------- | ------------------------------------------------------------------------------ |
+| Bùi Tấn Phát  | Backend Engineer | tan270407@gmail.com · 0984 380 205 · [Facebook](https://facebook.com/btanphat) |
+| PhoneHub Team | Product / DevOps | https://buitanphat.site                                                        |
 
 ---
 
 ## 📄 14. License
 
-- Giấy phép: *đang cập nhật* (đề xuất MIT hoặc Proprietary tùy chính sách).
+- Giấy phép: _đang cập nhật_ (đề xuất MIT hoặc Proprietary tùy chính sách).
 
 ---
 
@@ -513,7 +531,49 @@ Table order_items {
 }
 ```
 
-- Sơ đồ ERD: `docs/erd.png` *(đang bổ sung)*.
+- ### Sơ đồ luồng JWT Authentication (Flowchart)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Client as Client (Browser / App)
+    participant API as PhoneHub API Gateway
+    participant AuthSvc as Auth Service
+    participant UserRepo as User Repository
+    participant JWT as JWT Provider
+
+    Client->>API: POST /api/v1/auth/login {email, password}
+    API->>AuthSvc: Validate dữ liệu request
+    AuthSvc->>UserRepo: findByEmail(email)
+    UserRepo-->>AuthSvc: Trả về thông tin User (hash password, role)
+    AuthSvc->>AuthSvc: Kiểm tra mật khẩu bằng BCrypt
+    AuthSvc->>JWT: Tạo Access Token (userId, role, expiry)
+    AuthSvc->>JWT: Tạo Refresh Token (userId, expiry dài)
+    JWT-->>AuthSvc: Trả về tokens
+    AuthSvc-->>API: Trả về ApiResponse chứa tokens
+    API-->>Client: HTTP 200 + Access Token + Refresh Token
+
+    Client->>API: Request kế tiếp (Authorization: Bearer <AccessToken>)
+    API->>JWT: Xác thực Access Token
+    JWT-->>API: Trả claims (userId, role, exp)
+    API->>AuthSvc: Load user theo userId
+    AuthSvc->>UserRepo: findById(userId)
+    UserRepo-->>AuthSvc: Trả về User entity
+    AuthSvc-->>API: Trả về UserDetails + quyền
+    API->>API: Kiểm tra quyền truy cập (RoleBasedAccessInterceptor)
+    API-->>Client: HTTP 200 + dữ liệu được bảo vệ
+
+    Client->>API: POST /api/v1/auth/refresh {refreshToken}
+    API->>AuthSvc: Validate Refresh Token
+    AuthSvc->>JWT: Parse Refresh Token
+    JWT-->>AuthSvc: Trả claims (userId, exp)
+    AuthSvc->>JWT: Tạo Access Token mới
+    JWT-->>AuthSvc: Trả Access Token mới
+    AuthSvc-->>API: ApiResponse chứa Access Token mới
+    API-->>Client: HTTP 200 + Access Token mới
+```
+
+- Sơ đồ ERD: `docs/erd.png` _(đang bổ sung)_.
 - Sơ đồ sequence cho flow Checkout: `docs/sequence-checkout.png`.
 - Mẫu response chuẩn: xem `ApiResponse`.
 - Lệnh tiện ích:
@@ -523,5 +583,3 @@ Table order_items {
 ---
 
 > Mọi góp ý/issue xin gửi qua GitHub Issues hoặc email đội ngũ PhoneHub.
-
-

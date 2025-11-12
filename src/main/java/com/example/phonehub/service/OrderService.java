@@ -34,6 +34,21 @@ public class OrderService {
         return orderCacheService.listByUser(userId, page, size);
     }
 
+    /**
+     * Lấy danh sách orders có trạng thái "success" (đã đặt hàng thành công)
+     * Không bao gồm items để tối ưu performance cho admin
+     */
+    public Page<OrderDto> getSuccessOrders(int page, int size) {
+        return orderCacheService.listSuccessWithoutItems(page, size);
+    }
+
+    /**
+     * Lấy danh sách orders có trạng thái "success" của một user cụ thể
+     */
+    public Page<OrderDto> getSuccessOrdersByUser(Integer userId, int page, int size) {
+        return orderCacheService.listByUser(userId, page, size);
+    }
+
     public Optional<OrderDto> getById(Integer id) {
         return orderCacheService.byId(id);
     }

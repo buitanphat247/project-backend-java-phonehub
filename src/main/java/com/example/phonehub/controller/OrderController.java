@@ -122,6 +122,27 @@ public class OrderController {
     }
 
     @Operation(
+            summary = "✅ Lấy tất cả orders đã đặt hàng thành công",
+            description = "Lấy danh sách tất cả orders có trạng thái 'success' (đã đặt hàng thành công) với phân trang. Không bao gồm items để tối ưu performance. Dành cho admin quản lý. Có Redis cache."
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "✅ Lấy danh sách orders thành công"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "❌ Lỗi server")
+    })
+    @GetMapping("/success")
+    public ResponseEntity<ApiResponse<Page<OrderDto>>> getSuccessOrders(
+            @Parameter(description = "Số trang (bắt đầu từ 0)", example = "0") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Số lượng orders mỗi trang", example = "10") @RequestParam(defaultValue = "10") int size) {
+        try {
+            Page<OrderDto> data = orderService.getSuccessOrders(page, size);
+            return ResponseEntity.ok(ApiResponse.success("Lấy danh sách orders thành công", data));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Lỗi khi lấy danh sách orders thành công: " + e.getMessage()));
+        }
+    }
+
+    @Operation(
             summary = "✏️ Cập nhật trạng thái order",
             description = "Chỉ cập nhật field status: pending/success/failed; các trường khác giữ nguyên."
     )

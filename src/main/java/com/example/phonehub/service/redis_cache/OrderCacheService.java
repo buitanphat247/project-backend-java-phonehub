@@ -36,7 +36,7 @@ public class OrderCacheService {
         return orderRepository.findById(id).map(OrderUtils::toDto);
     }
 
-    @CacheEvict(cacheNames = { "orders:list", "orders:listByUser", "orders:byId", "orders:spent" }, allEntries = true)
+    @CacheEvict(cacheNames = { "orders:list", "orders:listByUser", "orders:byId", "orders:spent", "orders:success:list" }, allEntries = true)
     public void evictAll() {
         // No-op. Annotation handles eviction.
     }
@@ -44,5 +44,15 @@ public class OrderCacheService {
     @Cacheable(cacheNames = "orders:spent", key = "'u:' + #userId")
     public java.math.BigDecimal totalSpentByUser(Integer userId) {
         return orderRepository.sumTotalSpentByUser(userId);
+    }
+
+    /**
+     * Lấy danh sách orders thành công không có items (dành cho admin)
+     * Cache riêng để tối ưu performance
+     */
+    @Cacheable(cacheNames = "orders:success:list", key = "'p:' + #page + ':s:' + #size")
+    public Page<OrderDto> listSuccessWithoutItems(int page, int size) {
+        Pageable p = PageRequest.of(page, size);
+        return OrderUtils.toDtoPageWithoutItems(orderRepository.findByStatus("success", p));
     }
 }

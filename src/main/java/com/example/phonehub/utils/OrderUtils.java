@@ -60,6 +60,37 @@ public class OrderUtils {
         List<OrderDto> list = toDtoList(page.getContent());
         return new PageImpl<>(list, page.getPageable(), page.getTotalElements());
     }
+
+    /**
+     * Convert Order to OrderDto without items (for admin list view)
+     */
+    public static OrderDto toDtoWithoutItems(Order order) {
+        if (order == null) return null;
+        OrderDto dto = new OrderDto();
+        dto.setId(order.getId());
+        dto.setUserId(order.getUser() != null ? order.getUser().getId() : null);
+        dto.setUsername(order.getUser() != null ? order.getUser().getUsername() : null);
+        dto.setBuyerName(order.getBuyerName());
+        dto.setBuyerEmail(order.getBuyerEmail());
+        dto.setBuyerPhone(order.getBuyerPhone());
+        dto.setBuyerAddress(order.getBuyerAddress());
+        dto.setTotalPrice(order.getTotalPrice());
+        dto.setPaymentMethod(order.getPaymentMethod());
+        dto.setStatus(order.getStatus());
+        dto.setCreatedAt(order.getCreatedAt());
+        dto.setUpdatedAt(order.getUpdatedAt());
+        dto.setItems(null); // Không lấy items
+        return dto;
+    }
+
+    public static List<OrderDto> toDtoListWithoutItems(List<Order> orders) {
+        return orders.stream().map(OrderUtils::toDtoWithoutItems).collect(Collectors.toList());
+    }
+
+    public static Page<OrderDto> toDtoPageWithoutItems(Page<Order> page) {
+        List<OrderDto> list = toDtoListWithoutItems(page.getContent());
+        return new PageImpl<>(list, page.getPageable(), page.getTotalElements());
+    }
 }
 
 

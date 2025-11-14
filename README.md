@@ -531,6 +531,214 @@ Table order_items {
 }
 ```
 
+- ### Sơ đồ quan hệ (ERD Diagram)
+
+```mermaid
+erDiagram
+    roles ||--o{ users : "has"
+    user_ranks ||--o{ users : "has"
+    users ||--o{ email_verification_tokens : "has"
+    users ||--o{ password_reset_tokens : "has"
+    users ||--o{ password_change_history : "has"
+    users ||--o{ categories : "creates"
+    users ||--o{ products : "creates"
+    users ||--o{ product_specifications : "creates"
+    users ||--o{ product_colors : "creates"
+    users ||--o{ product_images : "creates"
+    users ||--o{ product_reviews : "writes"
+    users ||--o{ product_favorites : "has"
+    users ||--o{ cart_items : "has"
+    users ||--o{ orders : "places"
+    categories ||--o{ products : "contains"
+    products ||--o{ product_specifications : "has"
+    products ||--o{ product_colors : "has"
+    products ||--o{ product_images : "has"
+    products ||--o{ product_reviews : "receives"
+    products ||--o{ product_favorites : "in"
+    products ||--o{ cart_items : "in"
+    products ||--o{ order_items : "in"
+    orders ||--o{ order_items : "contains"
+    orders ||--o{ product_reviews : "generates"
+    product_reviews ||--o{ order_items : "linked_to"
+
+    roles {
+        int id PK
+        varchar name UK
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    users {
+        int id PK
+        varchar username UK
+        varchar password
+        varchar email UK
+        varchar phone
+        varchar address
+        varchar avatar
+        date birthday
+        int points
+        int rank_id FK
+        varchar refresh_token
+        int role_id FK
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    user_ranks {
+        int id PK
+        varchar name UK
+        int min_points
+        int max_points
+        decimal discount
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    email_verification_tokens {
+        int id PK
+        int user_id FK
+        varchar current_email
+        varchar new_email
+        varchar token UK
+        boolean used
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    password_reset_tokens {
+        int id PK
+        int user_id FK
+        varchar email
+        varchar token UK
+        timestamp expired_at
+        boolean used
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    password_change_history {
+        int id PK
+        int user_id FK
+        varchar old_password_hash
+        varchar new_password_hash
+        varchar ip_address
+        varchar user_agent
+        timestamp created_at
+    }
+
+    categories {
+        int id PK
+        varchar name UK
+        varchar slug UK
+        int created_by FK
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    products {
+        int id PK
+        varchar name
+        varchar slug UK
+        varchar brand
+        int category_id FK
+        decimal price
+        decimal price_old
+        varchar discount
+        varchar thumbnail_image
+        boolean is_published
+        timestamp published_at
+        int created_by FK
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    product_specifications {
+        int id PK
+        int product_id FK
+        varchar group_name
+        varchar label
+        text value
+        varchar type
+        int created_by FK
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    product_colors {
+        int id PK
+        int product_id FK
+        varchar name
+        varchar hex_color
+        int created_by FK
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    product_images {
+        int id PK
+        int product_id FK
+        varchar url
+        int created_by FK
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    product_reviews {
+        int id PK
+        int order_id FK
+        int product_id FK
+        int user_id FK
+        int rating
+        text comment
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    product_favorites {
+        int id PK
+        int user_id FK
+        int product_id FK
+        timestamp created_at
+    }
+
+    cart_items {
+        int id PK
+        int user_id FK
+        int product_id FK
+        int quantity
+        decimal price_at_add
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    orders {
+        int id PK
+        int user_id FK
+        varchar buyer_name
+        varchar buyer_email
+        varchar buyer_phone
+        varchar buyer_address
+        decimal total_price
+        varchar payment_method
+        enum status
+        varchar note
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    order_items {
+        int id PK
+        int order_id FK
+        int product_id FK
+        int quantity
+        decimal unit_price
+        boolean is_reviewed
+        int review_id FK
+        timestamp created_at
+    }
+```
+
 - ### Sơ đồ luồng JWT Authentication (Flowchart)
 
 ```mermaid

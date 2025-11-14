@@ -573,6 +573,134 @@ sequenceDiagram
     API-->>Client: HTTP 200 + Access Token mới
 ```
 
+- ### Sơ đồ luồng Change Email (Flowchart)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Client as Client (Browser / App)
+    participant API as PhoneHub API Gateway
+    participant EmailSvc as Email Verification Service
+    participant UserRepo as User Repository
+    participant TokenRepo as Email Token Repository
+    participant MailSvc as Mail Service (SMTP)
+
+    Client->>API: POST /api/v1/auth/change-email-request {userId, currentEmail, newEmail}
+    API->>EmailSvc: Validate dữ liệu request
+    EmailSvc->>UserRepo: findById(userId)
+    UserRepo-->>EmailSvc: Trả về thông tin User
+    EmailSvc->>EmailSvc: Kiểm tra currentEmail khớp với email trong DB
+    EmailSvc->>UserRepo: existsByEmail(newEmail)
+    UserRepo-->>EmailSvc: Trả về kết quả (email đã tồn tại?)
+    EmailSvc->>EmailSvc: Tạo token UUID
+    EmailSvc->>TokenRepo: save(EmailVerificationToken)
+    TokenRepo-->>EmailSvc: Token đã lưu thành công
+    EmailSvc->>MailSvc: Gửi email xác minh đến currentEmail (chứa link verify)
+    MailSvc-->>EmailSvc: Email đã gửi
+    EmailSvc-->>API: Trả về ApiResponse success
+    API-->>Client: HTTP 200 + "Đã gửi email xác minh"
+
+    Note over Client,MailSvc: User nhận email và click link xác minh
+
+    Client->>API: GET /api/v1/auth/verify-email-change?token=xxx
+    API->>EmailSvc: verifyEmailToken(token)
+    EmailSvc->>TokenRepo: findByToken(token)
+    TokenRepo-->>EmailSvc: Trả về EmailVerificationToken
+    EmailSvc->>EmailSvc: Kiểm tra token chưa dùng và chưa hết hạn
+    EmailSvc->>UserRepo: findById(userId từ token)
+    UserRepo-->>EmailSvc: Trả về User entity
+    EmailSvc->>UserRepo: Cập nhật user.email = newEmail
+    UserRepo-->>EmailSvc: User đã cập nhật
+    EmailSvc->>TokenRepo: Đánh dấu token.used = true
+    TokenRepo-->>EmailSvc: Token đã cập nhật
+    EmailSvc->>MailSvc: Gửi email thông báo đến currentEmail (email cũ)
+    EmailSvc->>MailSvc: Gửi email thông báo đến newEmail (email mới)
+    MailSvc-->>EmailSvc: Emails đã gửi
+    EmailSvc-->>API: Trả về ApiResponse success
+    API-->>Client: HTTP 200 + "Xác minh email thành công"
+```
+
+- ### Sơ đồ luồng Change Password (Flowchart)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Client as Client (Browser / App)
+    participant API as PhoneHub API Gateway
+    participant AuthSvc as Auth Service
+    participant UserRepo as User Repository
+    participant TokenRepo as Password Reset Token Repository
+    participant HistoryRepo as Password Change History Repository
+    participant MailSvc as Mail Service (SMTP)
+    participant PasswordUtil as Password Utils
+
+    Note over Client,MailSvc: Scenario 1: User đổi password khi đã đăng nhập
+
+    Client->>API: POST /api/v1/auth/change-password {userId, currentPassword, newPassword}
+    API->>AuthSvc: Validate dữ liệu request
+    AuthSvc->>UserRepo: findById(userId)
+    UserRepo-->>AuthSvc: Trả về thông tin User (hash password)
+    AuthSvc->>PasswordUtil: verifyPassword(currentPassword, user.password)
+    PasswordUtil-->>AuthSvc: Kết quả xác thực (true/false)
+    alt Password hiện tại đúng
+        AuthSvc->>PasswordUtil: encodeMD5(newPassword)
+        PasswordUtil-->>AuthSvc: Trả về hash password mới
+        AuthSvc->>HistoryRepo: Lưu password_change_history (oldHash, newHash, ip, userAgent)
+        HistoryRepo-->>AuthSvc: Đã lưu lịch sử
+        AuthSvc->>UserRepo: Cập nhật user.password = newHash
+        UserRepo-->>AuthSvc: User đã cập nhật
+        AuthSvc-->>API: Trả về ApiResponse success
+        API-->>Client: HTTP 200 + "Đổi mật khẩu thành công"
+    else Password hiện tại sai
+        AuthSvc-->>API: Trả về lỗi xác thực
+        API-->>Client: HTTP 401 + "Mật khẩu hiện tại không đúng"
+    end
+
+    Note over Client,MailSvc: Scenario 2: User quên password - Reset qua email
+
+    Client->>API: POST /api/v1/auth/forgot-password {email}
+    API->>AuthSvc: Validate email
+    AuthSvc->>UserRepo: findByEmail(email)
+    UserRepo-->>AuthSvc: Trả về thông tin User
+    AuthSvc->>AuthSvc: Tạo token UUID
+    AuthSvc->>TokenRepo: save(PasswordResetToken) với expiredAt
+    TokenRepo-->>AuthSvc: Token đã lưu thành công
+    AuthSvc->>MailSvc: Gửi email reset password (chứa link verify)
+    MailSvc-->>AuthSvc: Email đã gửi
+    AuthSvc-->>API: Trả về ApiResponse success
+    API-->>Client: HTTP 200 + "Đã gửi email reset password"
+
+    Note over Client,MailSvc: User nhận email và click link reset
+
+    Client->>API: GET /api/v1/auth/verify-reset-token?token=xxx
+    API->>AuthSvc: verifyResetToken(token)
+    AuthSvc->>TokenRepo: findByToken(token)
+    TokenRepo-->>AuthSvc: Trả về PasswordResetToken
+    AuthSvc->>AuthSvc: Kiểm tra token chưa dùng và chưa hết hạn
+    AuthSvc-->>API: Trả về ApiResponse success (token hợp lệ)
+    API-->>Client: HTTP 200 + "Token hợp lệ, có thể đặt mật khẩu mới"
+
+    Client->>API: POST /api/v1/auth/reset-password {token, newPassword}
+    API->>AuthSvc: resetPassword(token, newPassword)
+    AuthSvc->>TokenRepo: findByToken(token)
+    TokenRepo-->>AuthSvc: Trả về PasswordResetToken
+    AuthSvc->>AuthSvc: Kiểm tra token chưa dùng và chưa hết hạn
+    AuthSvc->>UserRepo: findById(userId từ token)
+    UserRepo-->>AuthSvc: Trả về User entity
+    AuthSvc->>PasswordUtil: encodeMD5(newPassword)
+    PasswordUtil-->>AuthSvc: Trả về hash password mới
+    AuthSvc->>HistoryRepo: Lưu password_change_history (oldHash, newHash, ip, userAgent)
+    HistoryRepo-->>AuthSvc: Đã lưu lịch sử
+    AuthSvc->>UserRepo: Cập nhật user.password = newHash
+    UserRepo-->>AuthSvc: User đã cập nhật
+    AuthSvc->>TokenRepo: Đánh dấu token.used = true
+    TokenRepo-->>AuthSvc: Token đã cập nhật
+    AuthSvc->>MailSvc: Gửi email thông báo đổi password thành công
+    MailSvc-->>AuthSvc: Email đã gửi
+    AuthSvc-->>API: Trả về ApiResponse success
+    API-->>Client: HTTP 200 + "Đặt lại mật khẩu thành công"
+```
+
 - Sơ đồ ERD: `docs/erd.png` _(đang bổ sung)_.
 - Sơ đồ sequence cho flow Checkout: `docs/sequence-checkout.png`.
 - Mẫu response chuẩn: xem `ApiResponse`.
